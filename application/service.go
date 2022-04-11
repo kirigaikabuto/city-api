@@ -2,6 +2,7 @@ package application
 
 type Service interface {
 	CreateApplication(cmd *CreateApplicationCommand) (*Application, error)
+	ListApplications(cmd *ListApplicationsCommand) ([]Application, error)
 }
 
 type service struct {
@@ -30,4 +31,8 @@ func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application
 		Latitude:    cmd.Latitude,
 	}
 	return s.appStore.Create(app)
+}
+
+func (s *service) ListApplications(cmd *ListApplicationsCommand) ([]Application, error) {
+
 }

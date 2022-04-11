@@ -69,7 +69,33 @@ func (a *applicationStore) Create(model *Application) (*Application, error) {
 }
 
 func (a *applicationStore) List() ([]Application, error) {
-	return nil, nil
+	var objects []Application
+	var values []interface{}
+	q := "select " +
+		"id, address, app_type, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude " +
+		"from Applications"
+	rows, err := a.db.Query(q, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		obj := Application{}
+		appType :=""
+		err = rows.Scan(
+			&obj.Id, &obj.Address,
+			&appType, &obj.FirstName,
+			&obj.LastName, &obj.Patronymic,
+			&obj.PhoneNumber, &obj.PhotoUrl,
+			&obj.VideoUrl, &obj.CreatedDate,
+			&obj.Longitude, &obj.Latitude)
+		if err != nil {
+			return nil, err
+		}
+		obj.AppType = ToProblemType(appType)
+		objects = append(objects, obj)
+	}
+	return objects, nil
 }
 
 func (a *applicationStore) GetById(id string) (*Application, error) {

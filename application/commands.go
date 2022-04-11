@@ -17,3 +17,6 @@ type CreateApplicationCommand struct {
 func (cmd *CreateApplicationCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).CreateApplication(cmd)
 }
+
+type ListApplicationsCommand struct {
+}
