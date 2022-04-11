@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/google/uuid"
 	"github.com/kirigaikabuto/city-api/common"
+	_ "github.com/lib/pq"
 	"log"
 	"time"
 )
@@ -20,8 +21,8 @@ var applicationQueries = []string{
 		photo_url text,
 		video_url text,
 		created_date date,
-		longitude double,
-		latitude double,
+		longitude double precision,
+		latitude double precision,
 		primary key(id)
 	);`,
 }

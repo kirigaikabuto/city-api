@@ -32,6 +32,7 @@ var (
 		&cli.StringFlag{
 			Name:        "config, c",
 			Usage:       "path to .env config file",
+			Value:       "./config/",
 			Destination: &configPath,
 		},
 	}

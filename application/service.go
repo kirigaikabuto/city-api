@@ -13,5 +13,21 @@ func NewApplicationService(appStore Store) Service {
 }
 
 func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application, error) {
-	return nil, nil
+	var appType ProblemType
+	if IsProblemTypeExist(cmd.AppType) {
+		appType = ToProblemType(cmd.AppType)
+	} else {
+		return nil, ErrApplicationTypeNotExist
+	}
+	app := &Application{
+		AppType:     appType,
+		FirstName:   cmd.FirstName,
+		LastName:    cmd.LastName,
+		Patronymic:  cmd.Patronymic,
+		PhoneNumber: cmd.PhoneNumber,
+		Address:     cmd.Address,
+		Longitude:   cmd.Longitude,
+		Latitude:    cmd.Latitude,
+	}
+	return s.appStore.Create(app)
 }
