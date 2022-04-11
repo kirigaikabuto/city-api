@@ -91,6 +91,7 @@ func run(c *cli.Context) error {
 	authGroup := r.Group("/application")
 	{
 		authGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
+		authGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
 	}
 	log.Println("app is running on port:" + port)
 	return r.Run()

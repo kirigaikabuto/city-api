@@ -34,5 +34,5 @@ func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application
 }
 
 func (s *service) ListApplications(cmd *ListApplicationsCommand) ([]Application, error) {
-
+	return s.appStore.List()
 }

@@ -81,7 +81,7 @@ func (a *applicationStore) List() ([]Application, error) {
 	defer rows.Close()
 	for rows.Next() {
 		obj := Application{}
-		appType :=""
+		appType := ""
 		err = rows.Scan(
 			&obj.Id, &obj.Address,
 			&appType, &obj.FirstName,

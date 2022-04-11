@@ -10,6 +10,7 @@ import (
 
 type HttpEndpoints interface {
 	MakeCreateApplication() gin.HandlerFunc
+	MakeListApplication() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -33,6 +34,18 @@ func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
 			return
 		}
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		respondJSON(context.Writer, http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeListApplication() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ListApplicationsCommand{}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))

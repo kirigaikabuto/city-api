@@ -20,3 +20,7 @@ func (cmd *CreateApplicationCommand) Exec(svc interface{}) (interface{}, error) 
 
 type ListApplicationsCommand struct {
 }
+
+func (cmd *ListApplicationsCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).ListApplications(cmd)
+}
