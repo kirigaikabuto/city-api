@@ -2,7 +2,6 @@ package application
 
 type Application struct {
 	Id          string      `json:"id"`
-	Address     string      `json:"address"`
 	AppType     ProblemType `json:"app_type"`
 	FirstName   string      `json:"first_name"`
 	LastName    string      `json:"last_name"`
@@ -10,6 +9,9 @@ type Application struct {
 	PhoneNumber string      `json:"phone_number"`
 	PhotoUrl    string      `json:"photo_url"`
 	VideoUrl    string      `json:"video_url"`
+	Address     string      `json:"address"`
+	Longitude   float64     `json:"longitude"`
+	Latitude    float64     `json:"latitude"`
 	CreatedDate string      `json:"created_date"`
 }
 

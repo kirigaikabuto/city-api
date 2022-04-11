@@ -20,6 +20,8 @@ var applicationQueries = []string{
 		photo_url text,
 		video_url text,
 		created_date date,
+		longitude double,
+		latitude double,
 		primary key(id)
 	);`,
 }
@@ -49,10 +51,10 @@ func (a *applicationStore) Create(model *Application) (*Application, error) {
 	model.CreatedDate = time.Now().String()
 	result, err := a.db.Exec(
 		"INSERT INTO Users "+
-			"(id, address, app_type, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+			"(id, address, app_type, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
 		model.Id, model.Address, model.AppType.ToString(), model.FirstName, model.LastName, model.Patronymic,
-		model.PhoneNumber, model.PhotoUrl, model.VideoUrl, model.CreatedDate,
+		model.PhoneNumber, model.PhotoUrl, model.VideoUrl, model.CreatedDate, model.Longitude, model.Latitude,
 	)
 	if err != nil {
 		return nil, err
