@@ -37,6 +37,7 @@ func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application
 	}
 	app := &Application{
 		AppType:     appType,
+		Message:     cmd.Message,
 		FirstName:   cmd.FirstName,
 		LastName:    cmd.LastName,
 		Patronymic:  cmd.Patronymic,

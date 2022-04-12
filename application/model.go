@@ -3,6 +3,7 @@ package application
 type Application struct {
 	Id          string      `json:"id"`
 	AppType     ProblemType `json:"app_type"`
+	Message     string      `json:"message"`
 	FirstName   string      `json:"first_name"`
 	LastName    string      `json:"last_name"`
 	Patronymic  string      `json:"patronymic"`

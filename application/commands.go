@@ -3,6 +3,7 @@ package application
 type CreateApplicationCommand struct {
 	Address     string  `json:"address"`
 	AppType     string  `json:"app_type"`
+	Message     string  `json:"message"`
 	FirstName   string  `json:"first_name"`
 	LastName    string  `json:"last_name"`
 	Patronymic  string  `json:"patronymic"`
