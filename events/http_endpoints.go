@@ -1,4 +1,4 @@
-package application
+package events
 
 import (
 	"encoding/json"
@@ -9,10 +9,8 @@ import (
 )
 
 type HttpEndpoints interface {
-	MakeCreateApplication() gin.HandlerFunc
-	MakeListApplication() gin.HandlerFunc
-
-	MakeSearchPlace() gin.HandlerFunc
+	MakeCreateEvent() gin.HandlerFunc
+	MakeListEvent() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -23,9 +21,9 @@ func NewHttpEndpoints(ch setdata_common.CommandHandler) HttpEndpoints {
 	return &httpEndpoints{ch: ch}
 }
 
-func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
+func (h *httpEndpoints) MakeCreateEvent() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		cmd := &CreateApplicationCommand{}
+		cmd := &CreateEventCommand{}
 		jsonData, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
@@ -45,27 +43,9 @@ func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
 	}
 }
 
-func (h *httpEndpoints) MakeListApplication() gin.HandlerFunc {
+func (h *httpEndpoints) MakeListEvent() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		cmd := &ListApplicationsCommand{}
-		resp, err := h.ch.ExecCommand(cmd)
-		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
-			return
-		}
-		respondJSON(context.Writer, http.StatusOK, resp)
-	}
-}
-
-func (h *httpEndpoints) MakeSearchPlace() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		cmd := &SearchPlaceCommand{}
-		name := context.Request.URL.Query().Get("name")
-		if name == "" {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrSearchPlaceNoAddressName))
-			return
-		}
-		cmd.Name = name
+		cmd := &ListEventCommand{}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))

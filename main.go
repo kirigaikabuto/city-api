@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kirigaikabuto/city-api/application"
 	"github.com/kirigaikabuto/city-api/common"
+	"github.com/kirigaikabuto/city-api/events"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli"
@@ -80,12 +81,20 @@ func run(c *cli.Context) error {
 		Database: postgresDatabaseName,
 		Params:   postgresParams,
 	}
+	//application
 	applicationPostgreStore, err := application.NewPostgresApplicationStore(cfg)
 	if err != nil {
 		return err
 	}
 	applicationService := application.NewApplicationService(applicationPostgreStore)
 	applicationHttpEndpoints := application.NewHttpEndpoints(setdata_common.NewCommandHandler(applicationService))
+	//events
+	eventsPostgreStore, err := events.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	eventService := events.NewService(eventsPostgreStore)
+	eventsHttpEnpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
 	r := gin.Default()
 
 	authGroup := r.Group("/application")
@@ -96,6 +105,11 @@ func run(c *cli.Context) error {
 	searchGroup := r.Group("/search")
 	{
 		searchGroup.GET("/street", applicationHttpEndpoints.MakeSearchPlace())
+	}
+	eventGroup := r.Group("/event")
+	{
+		eventGroup.POST("/", eventsHttpEnpoints.MakeCreateEvent())
+		eventGroup.GET("/", eventsHttpEnpoints.MakeListEvent())
 	}
 	log.Println("app is running on port:" + port)
 	return r.Run()
