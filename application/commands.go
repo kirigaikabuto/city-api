@@ -24,3 +24,44 @@ type ListApplicationsCommand struct {
 func (cmd *ListApplicationsCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).ListApplications(cmd)
 }
+
+type SearchPlaceCommand struct {
+	Name string `json:"name"`
+}
+
+func (cmd *SearchPlaceCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).SearchPlace(cmd)
+}
+
+type Place struct {
+	Name        string  `json:"name"`
+	PurposeName string  `json:"purpose_name"`
+	FullName    string  `json:"full_name"`
+	Address     string  `json:"address"`
+	Type        string  `json:"type"`
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
+}
+
+type TwoGisResponse struct {
+	Result TwoGisResponseResult `json:"result"`
+}
+
+type TwoGisResponseResult struct {
+	Items []Item `json:"items"`
+}
+
+type Item struct {
+	AddressName string `json:"address_name"`
+	FullName    string `json:"full_name"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Point       Point  `json:"point"`
+	PurposeName string `json:"purpose_name"`
+	Type        string `json:"type"`
+}
+
+type Point struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}

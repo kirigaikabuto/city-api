@@ -93,6 +93,10 @@ func run(c *cli.Context) error {
 		authGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
 		authGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
 	}
+	searchGroup := r.Group("/search")
+	{
+		searchGroup.GET("/street", applicationHttpEndpoints.MakeSearchPlace())
+	}
 	log.Println("app is running on port:" + port)
 	return r.Run()
 }

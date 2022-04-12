@@ -11,6 +11,8 @@ import (
 type HttpEndpoints interface {
 	MakeCreateApplication() gin.HandlerFunc
 	MakeListApplication() gin.HandlerFunc
+
+	MakeSearchPlace() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -52,6 +54,24 @@ func (h *httpEndpoints) MakeListApplication() gin.HandlerFunc {
 			return
 		}
 		respondJSON(context.Writer, http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeSearchPlace() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &SearchPlaceCommand{}
+		name := context.Request.URL.Query().Get("name")
+		if name == "" {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrSearchPlaceNoAddressName))
+			return
+		}
+		cmd.Name = name
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		respondJSON(context.Writer, http.StatusOK, resp)
 	}
 }
 
