@@ -88,6 +88,7 @@ func (s *store) List() ([]Event, error) {
 		if err != nil {
 			return nil, err
 		}
+		obj.Date = strings.Split(obj.Date, "T")[0]
 		obj.CreatedDate = strings.Split(obj.CreatedDate, "T")[0]
 		objects = append(objects, obj)
 	}
