@@ -3,7 +3,6 @@ package applications
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/spf13/viper"
 	"io/ioutil"
@@ -100,11 +99,14 @@ func (s *service) UploadApplicationFile(cmd *UploadApplicationFileCommand) (*Upl
 	if cmd.ContentType == "" {
 		return nil, ErrCannotDetectContentType
 	}
+	if !common.IsImage(cmd.ContentType) && !common.IsVideo(cmd.ContentType) {
+		return nil, ErrFileShouldBeOnlyImageOrVideo
+	}
 	modelUpdate := &ApplicationUpdate{
 		Id: cmd.Id,
 	}
 	fileType := strings.Split(cmd.ContentType, "/")[1]
-	fileResponse, err := s.s3.UploadFile(cmd.File.Bytes(), uuid.New().String(), fileType, cmd.ContentType)
+	fileResponse, err := s.s3.UploadFile(cmd.File.Bytes(), cmd.Id, fileType, cmd.ContentType)
 	if err != nil {
 		return nil, err
 	}
