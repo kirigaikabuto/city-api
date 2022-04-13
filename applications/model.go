@@ -1,4 +1,4 @@
-package application
+package applications
 
 type Application struct {
 	Id          string      `json:"id"`
@@ -14,6 +14,12 @@ type Application struct {
 	Longitude   float64     `json:"longitude"`
 	Latitude    float64     `json:"latitude"`
 	CreatedDate string      `json:"created_date"`
+}
+
+type ApplicationUpdate struct {
+	Id       string  `json:"id"`
+	PhotoUrl *string `json:"photo_url"`
+	VideoUrl *string `json:"video_url"`
 }
 
 type ProblemType string

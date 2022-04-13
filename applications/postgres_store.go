@@ -1,4 +1,4 @@
-package application
+package applications
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"github.com/kirigaikabuto/city-api/common"
 	_ "github.com/lib/pq"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -102,9 +103,87 @@ func (a *applicationStore) List() ([]Application, error) {
 }
 
 func (a *applicationStore) GetById(id string) (*Application, error) {
-	return nil, nil
+	obj := &Application{}
+	appType := ""
+	err := a.db.QueryRow("select id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude from Applications where id = $1", id).
+		Scan(&obj.Id, &obj.Address,
+			&appType, &obj.Message, &obj.FirstName,
+			&obj.LastName, &obj.Patronymic,
+			&obj.PhoneNumber, &obj.PhotoUrl,
+			&obj.VideoUrl, &obj.CreatedDate,
+			&obj.Longitude, &obj.Latitude)
+	if err == sql.ErrNoRows {
+		return nil, ErrApplicationNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	obj.AppType = ToProblemType(appType)
+	return obj, nil
 }
 
 func (a *applicationStore) GetByProblemType(problemType ProblemType) ([]Application, error) {
-	return nil, nil
+	var objects []Application
+	var values []interface{}
+	values = append(values, problemType.ToString())
+	q := "select " +
+		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude " +
+		"from Applications where app_type = $1"
+	rows, err := a.db.Query(q, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		obj := Application{}
+		appType := ""
+		err = rows.Scan(
+			&obj.Id, &obj.Address,
+			&appType, &obj.Message, &obj.FirstName,
+			&obj.LastName, &obj.Patronymic,
+			&obj.PhoneNumber, &obj.PhotoUrl,
+			&obj.VideoUrl, &obj.CreatedDate,
+			&obj.Longitude, &obj.Latitude)
+		if err != nil {
+			return nil, err
+		}
+		obj.CreatedDate = strings.Split(obj.CreatedDate, "T")[0]
+		obj.AppType = ToProblemType(appType)
+		objects = append(objects, obj)
+	}
+	return objects, nil
+}
+
+func (a *applicationStore) Update(model *ApplicationUpdate) (*Application, error) {
+	q := "update applications set "
+	parts := []string{}
+	values := []interface{}{}
+	cnt := 0
+	if model.PhotoUrl != nil {
+		cnt++
+		parts = append(parts, "photo_url = $"+strconv.Itoa(cnt))
+		values = append(values, model.PhotoUrl)
+	}
+	if model.VideoUrl != nil {
+		cnt++
+		parts = append(parts, "video_url = $"+strconv.Itoa(cnt))
+		values = append(values, model.VideoUrl)
+	}
+	if len(parts) <= 0 {
+		return nil, ErrNothingToUpdate
+	}
+	cnt++
+	q = q + strings.Join(parts, " , ") + " WHERE id = $" + strconv.Itoa(cnt)
+	values = append(values, model.Id)
+	result, err := a.db.Exec(q, values...)
+	if err != nil {
+		return nil, err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if n <= 0 {
+		return nil, ErrApplicationNotFound
+	}
+	return a.GetById(model.Id)
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/kirigaikabuto/city-api/application"
+	"github.com/kirigaikabuto/city-api/applications"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
@@ -81,13 +81,23 @@ func run(c *cli.Context) error {
 		Database: postgresDatabaseName,
 		Params:   postgresParams,
 	}
-	//application
-	applicationPostgreStore, err := application.NewPostgresApplicationStore(cfg)
+	//applications
+	s3Uploader, err := common.NewS3Uploader(
+		s3endpoint,
+		s3accessKey,
+		s3secretKey,
+		s3bucket,
+		s3uploadedFilesBasePath,
+		s3region)
 	if err != nil {
 		return err
 	}
-	applicationService := application.NewApplicationService(applicationPostgreStore)
-	applicationHttpEndpoints := application.NewHttpEndpoints(setdata_common.NewCommandHandler(applicationService))
+	applicationPostgreStore, err := applications.NewPostgresApplicationStore(cfg)
+	if err != nil {
+		return err
+	}
+	applicationService := applications.NewApplicationService(applicationPostgreStore, s3Uploader)
+	applicationHttpEndpoints := applications.NewHttpEndpoints(setdata_common.NewCommandHandler(applicationService))
 	//events
 	eventsPostgreStore, err := events.NewPostgresStore(cfg)
 	if err != nil {
@@ -97,10 +107,14 @@ func run(c *cli.Context) error {
 	eventsHttpEnpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
 	r := gin.Default()
 
-	authGroup := r.Group("/application")
+	appGroup := r.Group("/application")
 	{
-		authGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
-		authGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
+		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
+		appGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
+		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
+		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
+		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
+
 	}
 	searchGroup := r.Group("/search")
 	{

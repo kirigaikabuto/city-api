@@ -1,4 +1,6 @@
-package application
+package applications
+
+import "bytes"
 
 type CreateApplicationCommand struct {
 	Address     string  `json:"address"`
@@ -34,6 +36,35 @@ func (cmd *SearchPlaceCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).SearchPlace(cmd)
 }
 
+type UploadApplicationFileCommand struct {
+	Id   string        `json:"id"`
+	File *bytes.Buffer `json:"file" form:"file"`
+}
+
+func (cmd *UploadApplicationFileCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).UploadApplicationFile(cmd)
+}
+
+type UploadApplicationFileResponse struct {
+	FileUrl string `json:"file_url"`
+}
+
+type ListApplicationsByTypeCommand struct {
+	AppType string `json:"app_type"`
+}
+
+func (cmd *ListApplicationsByTypeCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).ListApplicationsByType(cmd)
+}
+
+type GetApplicationByIdCommand struct {
+	Id string `json:"id"`
+}
+
+func (cmd *GetApplicationByIdCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).GetApplicationById(cmd)
+}
+
 type Place struct {
 	Name        string  `json:"name"`
 	PurposeName string  `json:"purpose_name"`
@@ -44,11 +75,11 @@ type Place struct {
 	Longitude   float64 `json:"longitude"`
 }
 
-type TwoGisResponse struct {
-	Result TwoGisResponseResult `json:"result"`
+type MapResponse struct {
+	Result MapResponseResult `json:"result"`
 }
 
-type TwoGisResponseResult struct {
+type MapResponseResult struct {
 	Items []Item `json:"items"`
 }
 
