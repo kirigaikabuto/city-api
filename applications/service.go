@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -96,14 +97,23 @@ func (s *service) SearchPlace(cmd *SearchPlaceCommand) ([]Place, error) {
 }
 
 func (s *service) UploadApplicationFile(cmd *UploadApplicationFileCommand) (*UploadApplicationFileResponse, error) {
-	fileResponse, err := s.s3.UploadFile(cmd.File.Bytes(), uuid.New().String(), "png")
+	if cmd.ContentType == "" {
+		return nil, ErrCannotDetectContentType
+	}
+	modelUpdate := &ApplicationUpdate{
+		Id: cmd.Id,
+	}
+	fileType := strings.Split(cmd.ContentType, "/")[1]
+	fileResponse, err := s.s3.UploadFile(cmd.File.Bytes(), uuid.New().String(), fileType, cmd.ContentType)
 	if err != nil {
 		return nil, err
 	}
-	modelUpdate := &ApplicationUpdate{
-		Id:       cmd.Id,
-		PhotoUrl: &fileResponse.FileUrl,
-		VideoUrl: nil,
+	if common.IsImage(cmd.ContentType) {
+		modelUpdate.PhotoUrl = &fileResponse.FileUrl
+	} else if common.IsVideo(cmd.ContentType) {
+		modelUpdate.VideoUrl = &fileResponse.FileUrl
+	} else {
+		return nil, ErrInCheckForContentType
 	}
 	_, err = s.appStore.Update(modelUpdate)
 	if err != nil {

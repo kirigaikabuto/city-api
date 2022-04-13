@@ -106,6 +106,7 @@ func (h *httpEndpoints) MakeUploadApplicationFile() gin.HandlerFunc {
 			return
 		}
 		cmd.File = buf
+		cmd.ContentType = http.DetectContentType(buf.Bytes())
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))

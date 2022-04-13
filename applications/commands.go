@@ -37,8 +37,9 @@ func (cmd *SearchPlaceCommand) Exec(svc interface{}) (interface{}, error) {
 }
 
 type UploadApplicationFileCommand struct {
-	Id   string        `json:"id"`
-	File *bytes.Buffer `json:"file" form:"file"`
+	Id          string        `json:"id"`
+	File        *bytes.Buffer `json:"file" form:"file"`
+	ContentType string        `json:"-"`
 }
 
 func (cmd *UploadApplicationFileCommand) Exec(svc interface{}) (interface{}, error) {

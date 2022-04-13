@@ -22,7 +22,7 @@ type Avatar struct {
 }
 
 type S3Uploader interface {
-	UploadFile(file []byte, key, fileType string) (*FileInfo, error)
+	UploadFile(file []byte, key, fileType, contentType string) (*FileInfo, error)
 	DeleteFile(key, fileType string) error
 	FileExist(key, fileType string) (bool, error)
 	ListFile() []string
@@ -56,13 +56,13 @@ func NewS3Uploader(endpoint, accessKey, secretKey, bucket, uploadedFilesURI, reg
 	}, nil
 }
 
-func (updr *defaultS3Uploader) UploadFile(file []byte, key, fileType string) (*FileInfo, error) {
-	var contentType string
-	if fileType == "png" {
-		contentType = "image/png"
-	} else {
-		contentType = "applications/octet-stream"
-	}
+func (updr *defaultS3Uploader) UploadFile(file []byte, key, fileType, contentType string) (*FileInfo, error) {
+	//var contentType string
+	//if fileType == "png" {
+	//	contentType = "image/png"
+	//} else {
+	//	contentType = "applications/octet-stream"
+	//}
 	_, err := updr.Uploader.PutObject(&s3.PutObjectInput{
 		Body:        bytes.NewReader(file),
 		Bucket:      aws.String(updr.Bucket),
