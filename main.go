@@ -36,7 +36,7 @@ var (
 	postgresHost            = ""
 	postgresPort            = 5432
 	postgresParams          = ""
-	port                    = "22"
+	port                    = "8080"
 	flags                   = []cli.Flag{
 		&cli.StringFlag{
 			Name:        "config, c",
@@ -76,10 +76,10 @@ func parseEnvFile() {
 
 func run(c *cli.Context) error {
 	parseEnvFile()
-	//port = os.Getenv("PORT")
-	//if port == "" {
-	//	port = "8080"
-	//}
+	port = os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	gin.SetMode(gin.ReleaseMode)
 	cfg := common.PostgresConfig{
 		Host:     postgresHost,
@@ -149,7 +149,6 @@ func run(c *cli.Context) error {
 		Addr:    "0.0.0.0:" + port,
 		Handler: r,
 	}
-	log.Info().Msg(server.Addr)
 	go func() {
 		if err := server.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 			log.Error().Err(err).Msg("Server ListenAndServe error")
