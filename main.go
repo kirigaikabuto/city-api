@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	configName              = "main"
+	configName              = "public"
 	configPath              = "/config/"
 	version                 = "0.0.1"
 	s3endpoint              = ""
