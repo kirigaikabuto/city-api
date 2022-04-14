@@ -112,7 +112,7 @@ func run(c *cli.Context) error {
 		return err
 	}
 	eventService := events.NewService(eventsPostgreStore)
-	eventsHttpEnpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
+	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
 
 	apiKeyStore, err := api_keys.NewPostgresStore(cfg)
 	if err != nil {
@@ -136,8 +136,8 @@ func run(c *cli.Context) error {
 	}
 	eventGroup := r.Group("/event")
 	{
-		eventGroup.POST("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEnpoints.MakeCreateEvent())
-		eventGroup.GET("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEnpoints.MakeListEvent())
+		eventGroup.POST("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
+		eventGroup.GET("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEndpoints.MakeListEvent())
 	}
 	apiKeyGroup := r.Group("/api-key")
 	{
@@ -161,7 +161,7 @@ func run(c *cli.Context) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err = server.Shutdown(ctx); err != nil {
 		log.Fatal().Err(err).Msg("Server forced to shutdown")
 	}
 
