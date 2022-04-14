@@ -16,4 +16,5 @@ var (
 	ErrCannotDetectContentType      = com.NewMiddleError(errors.New("cannot detect content type"), 500, 8)
 	ErrInCheckForContentType        = com.NewMiddleError(errors.New("check for content type incorrect"), 500, 9)
 	ErrFileShouldBeOnlyImageOrVideo = com.NewMiddleError(errors.New("file should be image or video"), 500, 10)
+	ErrApplicationStatusNotExist    = com.NewMiddleError(errors.New("applications status not exist"), 500, 11)
 )

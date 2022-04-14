@@ -66,6 +66,15 @@ func (cmd *GetApplicationByIdCommand) Exec(svc interface{}) (interface{}, error)
 	return svc.(Service).GetApplicationById(cmd)
 }
 
+type UpdateApplicationStatusCommand struct {
+	Id     string `json:"id"`
+	Status string `json:"status"`
+}
+
+func (cmd *UpdateApplicationStatusCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).UpdateApplicationStatus(cmd)
+}
+
 type Place struct {
 	Name        string  `json:"name"`
 	PurposeName string  `json:"purpose_name"`

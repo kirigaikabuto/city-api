@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/kirigaikabuto/city-api/applications"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"github.com/urfave/cli"
-	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 var (
@@ -110,11 +116,11 @@ func run(c *cli.Context) error {
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
-		appGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
 		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
+		appGroup.PUT("/status", applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
-
+		appGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
 	}
 	searchGroup := r.Group("/search")
 	{
@@ -125,8 +131,29 @@ func run(c *cli.Context) error {
 		eventGroup.POST("/", eventsHttpEnpoints.MakeCreateEvent())
 		eventGroup.GET("/", eventsHttpEnpoints.MakeListEvent())
 	}
-	log.Println("app is running on port:" + port)
-	return r.Run()
+	log.Info().Msg("app is running on port:" + port)
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: r,
+	}
+	go func() {
+		if err := server.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("Server ListenAndServe error")
+		}
+	}()
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Info().Msg("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal().Err(err).Msg("Server forced to shutdown")
+	}
+
+	log.Info().Msg("Server exiting.")
+	return nil
 }
 
 func main() {
@@ -140,6 +167,6 @@ func main() {
 	app.Action = run
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		log.Err(err)
 	}
 }

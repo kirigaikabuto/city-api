@@ -16,6 +16,7 @@ type HttpEndpoints interface {
 	MakeUploadApplicationFile() gin.HandlerFunc
 	MakeListApplicationByType() gin.HandlerFunc
 	MakeGetApplicationById() gin.HandlerFunc
+	MakeUpdateStatus() gin.HandlerFunc
 
 	MakeSearchPlace() gin.HandlerFunc
 }
@@ -140,6 +141,34 @@ func (h *httpEndpoints) MakeGetApplicationById() gin.HandlerFunc {
 		id := context.Request.URL.Query().Get("id")
 		if id == "" {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoApplicationId))
+			return
+		}
+		cmd.Id = id
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		respondJSON(context.Writer, http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeUpdateStatus() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &UpdateApplicationStatusCommand{}
+		id := context.Request.URL.Query().Get("id")
+		if id == "" {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoApplicationId))
+			return
+		}
+		respJs, err := ioutil.ReadAll(context.Request.Body)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		err = json.Unmarshal(respJs, &cmd)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
 			return
 		}
 		cmd.Id = id

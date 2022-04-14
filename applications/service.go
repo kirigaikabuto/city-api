@@ -21,6 +21,7 @@ type Service interface {
 	UploadApplicationFile(cmd *UploadApplicationFileCommand) (*UploadApplicationFileResponse, error)
 	ListApplicationsByType(cmd *ListApplicationsByTypeCommand) ([]Application, error)
 	GetApplicationById(cmd *GetApplicationByIdCommand) (*Application, error)
+	UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (*Application, error)
 
 	SearchPlace(cmd *SearchPlaceCommand) ([]Place, error)
 }
@@ -137,4 +138,16 @@ func (s *service) ListApplicationsByType(cmd *ListApplicationsByTypeCommand) ([]
 
 func (s *service) GetApplicationById(cmd *GetApplicationByIdCommand) (*Application, error) {
 	return s.appStore.GetById(cmd.Id)
+}
+
+func (s *service) UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (*Application, error) {
+	model := &ApplicationUpdate{
+		Id: cmd.Id,
+	}
+	if !IsStatusExist(cmd.Status) {
+		return nil, ErrApplicationStatusNotExist
+	}
+	currentStatus := ToStatus(cmd.Status)
+	model.AppStatus = &currentStatus
+	return s.appStore.Update(model)
 }
