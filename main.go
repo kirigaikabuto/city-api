@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/kirigaikabuto/city-api/api_keys"
 	"github.com/kirigaikabuto/city-api/applications"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
@@ -111,8 +112,14 @@ func run(c *cli.Context) error {
 	}
 	eventService := events.NewService(eventsPostgreStore)
 	eventsHttpEnpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
-	r := gin.Default()
 
+	apiKeyStore, err := api_keys.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	apiKeyHttpEndpoints := api_keys.NewHttpEndpoints(setdata_common.NewCommandHandler(apiKeyStore))
+	//apiKewMdw := auth.NewApiKeyMdw(apiKeyStore)
+	r := gin.Default()
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
@@ -120,7 +127,7 @@ func run(c *cli.Context) error {
 		appGroup.PUT("/status", applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
-		appGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
+		appGroup.GET("/",applicationHttpEndpoints.MakeListApplication())
 	}
 	searchGroup := r.Group("/search")
 	{
@@ -130,6 +137,11 @@ func run(c *cli.Context) error {
 	{
 		eventGroup.POST("/", eventsHttpEnpoints.MakeCreateEvent())
 		eventGroup.GET("/", eventsHttpEnpoints.MakeListEvent())
+	}
+	apiKeyGroup := r.Group("/api-key")
+	{
+		apiKeyGroup.POST("/", apiKeyHttpEndpoints.MakeCreateApiKey())
+		apiKeyGroup.GET("/", apiKeyHttpEndpoints.MakeListApiKey())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{
