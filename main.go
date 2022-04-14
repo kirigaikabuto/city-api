@@ -149,6 +149,7 @@ func run(c *cli.Context) error {
 		Addr:    "0.0.0.0:" + port,
 		Handler: r,
 	}
+	log.Info().Msg(server.Addr)
 	go func() {
 		if err := server.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 			log.Error().Err(err).Msg("Server ListenAndServe error")
