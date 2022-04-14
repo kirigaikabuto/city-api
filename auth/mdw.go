@@ -25,14 +25,17 @@ func (a *apiKeyMdw) MakeApiKeyMiddleware() gin.HandlerFunc {
 		apiKeyVal := context.Request.Header.Get("Api-Key")
 		if apiKeyVal == "" {
 			respondJSON(context.Writer, http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoApiKeyHeaderValue))
+			context.Abort()
 			return
 		}
 		_, err := a.apiKeyStore.GetByKey(apiKeyVal)
 		if err != nil && err == api_keys.ErrApiKeyNotFound {
 			respondJSON(context.Writer, http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrIncorrectApiKey))
+			context.Abort()
 			return
 		} else if err != nil {
 			respondJSON(context.Writer, http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			context.Abort()
 			return
 		}
 		context.Next()

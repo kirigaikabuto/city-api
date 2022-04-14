@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kirigaikabuto/city-api/api_keys"
 	"github.com/kirigaikabuto/city-api/applications"
+	"github.com/kirigaikabuto/city-api/auth"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
@@ -118,16 +119,16 @@ func run(c *cli.Context) error {
 		return err
 	}
 	apiKeyHttpEndpoints := api_keys.NewHttpEndpoints(setdata_common.NewCommandHandler(apiKeyStore))
-	//apiKewMdw := auth.NewApiKeyMdw(apiKeyStore)
+	apiKewMdw := auth.NewApiKeyMdw(apiKeyStore)
 	r := gin.Default()
-	appGroup := r.Group("/application")
+	appGroup := r.Group("/application", apiKewMdw.MakeApiKeyMiddleware())
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
 		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
 		appGroup.PUT("/status", applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
-		appGroup.GET("/",applicationHttpEndpoints.MakeListApplication())
+		appGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
 	}
 	searchGroup := r.Group("/search")
 	{
