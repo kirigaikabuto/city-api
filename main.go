@@ -121,23 +121,23 @@ func run(c *cli.Context) error {
 	apiKeyHttpEndpoints := api_keys.NewHttpEndpoints(setdata_common.NewCommandHandler(apiKeyStore))
 	apiKewMdw := auth.NewApiKeyMdw(apiKeyStore)
 	r := gin.Default()
-	appGroup := r.Group("/application", apiKewMdw.MakeApiKeyMiddleware())
+	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
 		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
 		appGroup.PUT("/status", applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
-		appGroup.GET("/", applicationHttpEndpoints.MakeListApplication())
+		appGroup.GET("/", apiKewMdw.MakeApiKeyMiddleware(), applicationHttpEndpoints.MakeListApplication())
 	}
 	searchGroup := r.Group("/search")
 	{
-		searchGroup.GET("/street", applicationHttpEndpoints.MakeSearchPlace())
+		searchGroup.GET("/street", apiKewMdw.MakeApiKeyMiddleware(), applicationHttpEndpoints.MakeSearchPlace())
 	}
 	eventGroup := r.Group("/event")
 	{
-		eventGroup.POST("/", eventsHttpEnpoints.MakeCreateEvent())
-		eventGroup.GET("/", eventsHttpEnpoints.MakeListEvent())
+		eventGroup.POST("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEnpoints.MakeCreateEvent())
+		eventGroup.GET("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEnpoints.MakeListEvent())
 	}
 	apiKeyGroup := r.Group("/api-key")
 	{
