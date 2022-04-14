@@ -146,7 +146,7 @@ func run(c *cli.Context) error {
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{
-		Addr:    ":" + port,
+		Addr:    "0.0.0.0:" + port,
 		Handler: r,
 	}
 	go func() {
