@@ -1,0 +1,12 @@
+{
+  "db": {
+    "primary": {
+      "host": "localhost",
+      "port": 5432,
+      "name": "city_db",
+      "user": "setdatauser1",
+      "pass": "123456789",
+      "param": "sslmode=disable"
+    }
+  }
+}
