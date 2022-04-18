@@ -53,9 +53,6 @@ func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
 
 func (h *httpEndpoints) MakeListApplication() gin.HandlerFunc {
 	return func(context *gin.Context) {
-		context.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		context.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		context.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Allow-Origin")
 		cmd := &ListApplicationsCommand{}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
@@ -197,6 +194,9 @@ func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+	(w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Allow-Origin")
 	w.Header().Set("Content-Type", "applications/json")
 	w.WriteHeader(status)
 	w.Write(response)
