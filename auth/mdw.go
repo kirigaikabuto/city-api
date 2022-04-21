@@ -10,7 +10,6 @@ import (
 
 type ApiKeyMdw interface {
 	MakeApiKeyMiddleware() gin.HandlerFunc
-	MakeBlockMiddleware() gin.HandlerFunc
 }
 
 type apiKeyMdw struct {
@@ -19,14 +18,6 @@ type apiKeyMdw struct {
 
 func NewApiKeyMdw(apiKeyStore api_keys.ApiKeyStore) ApiKeyMdw {
 	return &apiKeyMdw{apiKeyStore: apiKeyStore}
-}
-
-func (a *apiKeyMdw) MakeBlockMiddleware() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		respondJSON(context.Writer, http.StatusForbidden, setdata_common.ErrToHttpResponse(ErrAccessForbidden))
-		context.Abort()
-		return
-	}
 }
 
 func (a *apiKeyMdw) MakeApiKeyMiddleware() gin.HandlerFunc {

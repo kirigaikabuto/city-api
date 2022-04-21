@@ -121,6 +121,7 @@ func run(c *cli.Context) error {
 	apiKeyHttpEndpoints := api_keys.NewHttpEndpoints(setdata_common.NewCommandHandler(apiKeyStore))
 	apiKewMdw := auth.NewApiKeyMdw(apiKeyStore)
 	r := gin.Default()
+	//r.Use(apiKewMdw.MakeCorsMiddleware())
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
@@ -128,7 +129,17 @@ func run(c *cli.Context) error {
 		appGroup.PUT("/status", applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
-		appGroup.GET("/", apiKewMdw.MakeApiKeyMiddleware(), applicationHttpEndpoints.MakeListApplication())
+		appGroup.GET("/list", applicationHttpEndpoints.MakeListApplication())
+		//appGroup.GET("/line", func(c *gin.Context) {
+		//	// Note: During front-end and back-end separation, attention should be paid to cross-domain issues, so request headers need to be set up.
+		//	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		//	legendData := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
+		//	xAxisData := []int{120, 240, rand.Intn(500), rand.Intn(500), 150, 230, 180}
+		//	c.JSON(200, gin.H{
+		//		"legend_data": legendData,
+		//		"xAxis_data":  xAxisData,
+		//	})
+		//})
 	}
 	searchGroup := r.Group("/search")
 	{

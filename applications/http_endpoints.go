@@ -52,14 +52,15 @@ func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
 }
 
 func (h *httpEndpoints) MakeListApplication() gin.HandlerFunc {
-	return func(context *gin.Context) {
+	return func(c *gin.Context) {
 		cmd := &ListApplicationsCommand{}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			respondJSON(c.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
 			return
 		}
-		respondJSON(context.Writer, http.StatusOK, resp)
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.JSON(200, resp)
 	}
 }
 

@@ -24,6 +24,10 @@ func (cmd *CreateApplicationCommand) Exec(svc interface{}) (interface{}, error) 
 type ListApplicationsCommand struct {
 }
 
+type ListApplicationResponse struct {
+	Applications []Application `json:"applications"`
+}
+
 func (cmd *ListApplicationsCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).ListApplications(cmd)
 }

@@ -17,7 +17,7 @@ var (
 
 type Service interface {
 	CreateApplication(cmd *CreateApplicationCommand) (*Application, error)
-	ListApplications(cmd *ListApplicationsCommand) ([]Application, error)
+	ListApplications(cmd *ListApplicationsCommand) (*ListApplicationResponse, error)
 	UploadApplicationFile(cmd *UploadApplicationFileCommand) (*UploadApplicationFileResponse, error)
 	ListApplicationsByType(cmd *ListApplicationsByTypeCommand) ([]Application, error)
 	GetApplicationById(cmd *GetApplicationByIdCommand) (*Application, error)
@@ -56,8 +56,13 @@ func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application
 	return s.appStore.Create(app)
 }
 
-func (s *service) ListApplications(cmd *ListApplicationsCommand) ([]Application, error) {
-	return s.appStore.List()
+func (s *service) ListApplications(cmd *ListApplicationsCommand) (*ListApplicationResponse, error) {
+	applications, err := s.appStore.List()
+	if err != nil {
+		return nil, err
+	}
+	resp := &ListApplicationResponse{Applications: applications}
+	return resp, nil
 }
 
 func (s *service) SearchPlace(cmd *SearchPlaceCommand) ([]Place, error) {
@@ -93,6 +98,7 @@ func (s *service) SearchPlace(cmd *SearchPlaceCommand) ([]Place, error) {
 		}
 		result = append(result, p)
 	}
+
 	return result, nil
 }
 
