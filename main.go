@@ -130,16 +130,6 @@ func run(c *cli.Context) error {
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
 		appGroup.GET("/list", applicationHttpEndpoints.MakeListApplication())
-		//appGroup.GET("/line", func(c *gin.Context) {
-		//	// Note: During front-end and back-end separation, attention should be paid to cross-domain issues, so request headers need to be set up.
-		//	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		//	legendData := []string{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
-		//	xAxisData := []int{120, 240, rand.Intn(500), rand.Intn(500), 150, 230, 180}
-		//	c.JSON(200, gin.H{
-		//		"legend_data": legendData,
-		//		"xAxis_data":  xAxisData,
-		//	})
-		//})
 	}
 	searchGroup := r.Group("/search")
 	{
