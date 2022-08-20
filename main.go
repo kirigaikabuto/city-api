@@ -36,7 +36,7 @@ var (
 	postgresHost            = ""
 	postgresPort            = 5432
 	postgresParams          = ""
-	port                    = "8080"
+	port                    = "5000"
 	flags                   = []cli.Flag{
 		&cli.StringFlag{
 			Name:        "config, c",
@@ -76,10 +76,6 @@ func parseEnvFile() {
 
 func run(c *cli.Context) error {
 	parseEnvFile()
-	port = os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
 	gin.SetMode(gin.ReleaseMode)
 	cfg := common.PostgresConfig{
 		Host:     postgresHost,
