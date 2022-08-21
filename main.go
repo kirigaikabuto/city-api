@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/kirigaikabuto/city-api/api_keys"
 	"github.com/kirigaikabuto/city-api/applications"
 	"github.com/kirigaikabuto/city-api/auth"
 	"github.com/kirigaikabuto/city-api/common"
@@ -24,6 +23,8 @@ var (
 	configName              = "main"
 	configPath              = "/config/"
 	version                 = "0.0.1"
+	redisHost               = ""
+	redisPort               = ""
 	s3endpoint              = ""
 	s3bucket                = ""
 	s3accessKey             = ""
@@ -72,6 +73,8 @@ func parseEnvFile() {
 	s3secretKey = viper.GetString("s3.primary.s3secretKey")
 	s3uploadedFilesBasePath = viper.GetString("s3.primary.s3uploadedFilesBasePath")
 	s3region = viper.GetString("s3.primary.s3region")
+	redisHost = viper.GetString("redis.primary.host")
+	redisPort = viper.GetString("redis.primary.port")
 }
 
 func run(c *cli.Context) error {
@@ -85,6 +88,15 @@ func run(c *cli.Context) error {
 		Database: postgresDatabaseName,
 		Params:   postgresParams,
 	}
+	//tkn store
+	tknStore, err := auth.NewTokenStore(auth.RedisConfig{
+		Host: redisHost,
+		Port: redisPort,
+	})
+	if err != nil {
+		return err
+	}
+	mdw := auth.NewMiddleware(tknStore)
 	//applications
 	s3Uploader, err := common.NewS3Uploader(
 		s3endpoint,
@@ -110,12 +122,6 @@ func run(c *cli.Context) error {
 	eventService := events.NewService(eventsPostgreStore)
 	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
 
-	apiKeyStore, err := api_keys.NewPostgresStore(cfg)
-	if err != nil {
-		return err
-	}
-	apiKeyHttpEndpoints := api_keys.NewHttpEndpoints(setdata_common.NewCommandHandler(apiKeyStore))
-	apiKewMdw := auth.NewApiKeyMdw(apiKeyStore)
 	r := gin.Default()
 	//r.Use(apiKewMdw.MakeCorsMiddleware())
 	appGroup := r.Group("/application")
@@ -129,17 +135,17 @@ func run(c *cli.Context) error {
 	}
 	searchGroup := r.Group("/search")
 	{
-		searchGroup.GET("/street", apiKewMdw.MakeApiKeyMiddleware(), applicationHttpEndpoints.MakeSearchPlace())
+		searchGroup.GET("/street", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeSearchPlace())
 	}
 	eventGroup := r.Group("/event")
 	{
-		eventGroup.POST("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
-		eventGroup.GET("/", apiKewMdw.MakeApiKeyMiddleware(), eventsHttpEndpoints.MakeListEvent())
+		eventGroup.POST("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
+		eventGroup.GET("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeListEvent())
 	}
 	apiKeyGroup := r.Group("/api-key")
 	{
-		apiKeyGroup.POST("/", apiKeyHttpEndpoints.MakeCreateApiKey())
-		apiKeyGroup.GET("/", apiKeyHttpEndpoints.MakeListApiKey())
+		apiKeyGroup.POST("/", mdw.MakeMiddleware())
+		apiKeyGroup.GET("/", mdw.MakeMiddleware())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{
