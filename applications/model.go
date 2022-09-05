@@ -14,6 +14,7 @@ type Application struct {
 	Address     string      `json:"address"`
 	Longitude   float64     `json:"longitude"`
 	Latitude    float64     `json:"latitude"`
+	UserId      string      `json:"user_id"`
 	CreatedDate string      `json:"created_date"`
 }
 
@@ -41,7 +42,7 @@ var (
 		OverflowingBins:       "переполненные урны",
 	}
 	stringToProblemType = map[string]ProblemType{
-		"свалка":                   Dump,
+		"свалка": Dump,
 		"крупногабаритные отходы":  OversizeWaste,
 		"переполненные контейнеры": OverflowingContainers,
 		"переполненные урны":       OverflowingBins,

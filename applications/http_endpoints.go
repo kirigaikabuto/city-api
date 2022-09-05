@@ -12,11 +12,13 @@ import (
 
 type HttpEndpoints interface {
 	MakeCreateApplication() gin.HandlerFunc
+	MakeCreateApplicationWithAuth() gin.HandlerFunc
 	MakeListApplication() gin.HandlerFunc
 	MakeUploadApplicationFile() gin.HandlerFunc
 	MakeListApplicationByType() gin.HandlerFunc
 	MakeGetApplicationById() gin.HandlerFunc
 	MakeUpdateStatus() gin.HandlerFunc
+	MakeAuthorizedUserListApplications() gin.HandlerFunc
 
 	MakeSearchPlace() gin.HandlerFunc
 }
@@ -33,22 +35,40 @@ func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		setupResponse(context.Writer)
 		cmd := &CreateApplicationCommand{}
-		jsonData, err := ioutil.ReadAll(context.Request.Body)
+		err := context.ShouldBindJSON(cmd)
 		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
-			return
-		}
-		err = json.Unmarshal(jsonData, &cmd)
-		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
 			return
 		}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
 			return
 		}
-		respondJSON(context.Writer, http.StatusCreated, resp)
+		context.JSON(http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeCreateApplicationWithAuth() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &CreateApplicationCommand{}
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		cmd.UserId = userId.(string)
+		err := context.ShouldBindJSON(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusCreated, resp)
 	}
 }
 
@@ -180,6 +200,24 @@ func (h *httpEndpoints) MakeUpdateStatus() gin.HandlerFunc {
 			return
 		}
 		respondJSON(context.Writer, http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeAuthorizedUserListApplications() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ListApplicationsByUserIdCommand{}
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		cmd.UserId = userId.(string)
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusCreated, resp)
 	}
 }
 

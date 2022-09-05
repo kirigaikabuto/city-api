@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -24,22 +23,18 @@ func NewHttpEndpoints(ch setdata_common.CommandHandler) HttpEndpoints {
 func (h *httpEndpoints) MakeCreateEvent() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		cmd := &CreateEventCommand{}
-		jsonData, err := ioutil.ReadAll(context.Request.Body)
-		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
 			return
 		}
-		err = json.Unmarshal(jsonData, &cmd)
-		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
-			return
-		}
+		cmd.UserId = userId.(string)
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
-			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
 			return
 		}
-		respondJSON(context.Writer, http.StatusCreated, resp)
+		context.JSON(http.StatusCreated, resp)
 	}
 }
 

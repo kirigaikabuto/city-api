@@ -20,6 +20,7 @@ var queries = []string{
 		longitude double precision,
 		latitude double precision,
 		created_date date,
+		user_id text,
 		primary key(id)
 	);`,
 }
@@ -48,10 +49,10 @@ func (s *store) Create(model *Event) (*Event, error) {
 	model.Id = uuid.New().String()
 	result, err := s.db.Exec(
 		"INSERT INTO events "+
-			"(id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, current_date)",
+			"(id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date, user_id) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, current_date, $10)",
 		model.Id, model.Address, model.Description, model.Date, model.Time, model.OrganizerInfo, model.DocumentUrl, model.Longitude,
-		model.Latitude,
+		model.Latitude, model.UserId,
 	)
 	if err != nil {
 		return nil, err
@@ -70,7 +71,7 @@ func (s *store) List() ([]Event, error) {
 	var objects []Event
 	var values []interface{}
 	q := "select " +
-		"id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date " +
+		"id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date, user_id " +
 		"from events"
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
@@ -84,7 +85,7 @@ func (s *store) List() ([]Event, error) {
 			&obj.Description, &obj.Date,
 			&obj.Time, &obj.OrganizerInfo,
 			&obj.DocumentUrl, &obj.Longitude,
-			&obj.Latitude, &obj.CreatedDate)
+			&obj.Latitude, &obj.CreatedDate, &obj.UserId)
 		if err != nil {
 			return nil, err
 		}

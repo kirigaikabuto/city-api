@@ -10,5 +10,6 @@ type Event struct {
 	DocumentUrl   string  `json:"document_url"`
 	Longitude     float64 `json:"longitude"`
 	Latitude      float64 `json:"latitude"`
+	UserId        string  `json:"user_id"`
 	CreatedDate   string  `json:"created_date"`
 }

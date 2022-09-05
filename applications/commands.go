@@ -111,3 +111,11 @@ type Point struct {
 	Lat float64 `json:"lat"`
 	Lon float64 `json:"lon"`
 }
+
+type ListApplicationsByUserIdCommand struct {
+	UserId string `json:"-"`
+}
+
+func (cmd *ListApplicationsByUserIdCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).ListApplicationsByUserId(cmd)
+}

@@ -7,4 +7,5 @@ import (
 
 var (
 	ErrCreateEventUnknown = com.NewMiddleError(errors.New("could not create event: unknown error"), 500, 51)
+	ErrNoUserIdInToken    = com.NewMiddleError(errors.New("no user id in token"), 500, 52)
 )

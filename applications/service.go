@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/kirigaikabuto/city-api/common"
+	"github.com/kirigaikabuto/city-api/users"
 	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
@@ -22,17 +23,19 @@ type Service interface {
 	ListApplicationsByType(cmd *ListApplicationsByTypeCommand) ([]Application, error)
 	GetApplicationById(cmd *GetApplicationByIdCommand) (*Application, error)
 	UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (*Application, error)
+	ListApplicationsByUserId(cmd *ListApplicationsByUserIdCommand) ([]Application, error)
 
 	SearchPlace(cmd *SearchPlaceCommand) ([]Place, error)
 }
 
 type service struct {
-	appStore Store
-	s3       common.S3Uploader
+	appStore  Store
+	userStore users.UsersStore
+	s3        common.S3Uploader
 }
 
-func NewApplicationService(appStore Store, s3 common.S3Uploader) Service {
-	return &service{appStore: appStore, s3: s3}
+func NewApplicationService(appStore Store, s3 common.S3Uploader, usersStore users.UsersStore) Service {
+	return &service{appStore: appStore, s3: s3, userStore: usersStore}
 }
 
 func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application, error) {
@@ -52,6 +55,16 @@ func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application
 		Address:     cmd.Address,
 		Longitude:   cmd.Longitude,
 		Latitude:    cmd.Latitude,
+	}
+	if cmd.UserId != "" {
+		app.UserId = cmd.UserId
+		currentUser, err := s.userStore.Get(cmd.UserId)
+		if err != nil {
+			return nil, err
+		}
+		app.FirstName = currentUser.FirstName
+		app.LastName = currentUser.LastName
+		app.PhoneNumber = currentUser.PhoneNumber
 	}
 	return s.appStore.Create(app)
 }
@@ -156,4 +169,8 @@ func (s *service) UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (
 	currentStatus := ToStatus(cmd.Status)
 	model.AppStatus = &currentStatus
 	return s.appStore.Update(model)
+}
+
+func (s *service) ListApplicationsByUserId(cmd *ListApplicationsByUserIdCommand) ([]Application, error) {
+	return s.appStore.ListApplicationsByUserId(cmd.UserId)
 }
