@@ -31,6 +31,7 @@ func NewHttpEndpoints(ch setdata_common.CommandHandler) HttpEndpoints {
 
 func (h *httpEndpoints) MakeCreateApplication() gin.HandlerFunc {
 	return func(context *gin.Context) {
+		setupResponse(context.Writer)
 		cmd := &CreateApplicationCommand{}
 		jsonData, err := ioutil.ReadAll(context.Request.Body)
 		if err != nil {
@@ -182,11 +183,11 @@ func (h *httpEndpoints) MakeUpdateStatus() gin.HandlerFunc {
 	}
 }
 
-//func setupResponse(w http.ResponseWriter) {
-//	(w).Header().Set("Access-Control-Allow-Origin", "*")
-//	(w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-//	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Allow-Origin")
-//}
+func setupResponse(w http.ResponseWriter) {
+	(w).Header().Set("Access-Control-Allow-Origin", "*")
+	(w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, Access-Control-Allow-Origin")
+}
 
 func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
 	response, err := json.Marshal(payload)
