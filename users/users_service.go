@@ -1,7 +1,6 @@
 package users
 
 import (
-	"github.com/google/uuid"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 )
 
@@ -24,9 +23,9 @@ func NewUserService(uStore UsersStore) UserService {
 
 func (u *userService) CreateUser(cmd *CreateUserCommand) (*User, error) {
 	user := &User{
-		Id:       uuid.New().String(),
-		Username: cmd.Username,
-		Password: cmd.Password,
+		Username:   cmd.Username,
+		Password:   cmd.Password,
+		AccessType: AccessTypeUser,
 	}
 	return u.userStore.Create(user)
 }

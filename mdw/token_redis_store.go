@@ -1,4 +1,4 @@
-package auth
+package mdw
 
 import (
 	"github.com/dgrijalva/jwt-go"

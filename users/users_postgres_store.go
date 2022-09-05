@@ -2,6 +2,7 @@ package users
 
 import (
 	"database/sql"
+	"github.com/google/uuid"
 	"github.com/kirigaikabuto/city-api/common"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	_ "github.com/lib/pq"
@@ -15,6 +16,7 @@ var marketplaceAppRepoQueries = []string{
 		id TEXT,
 		username TEXT,
 		password TEXT,
+		access_type TEXT,
 		PRIMARY KEY(id)
 	);`,
 }
@@ -54,6 +56,11 @@ func (u *usersStore) Update(user *UserUpdate) (*User, error) {
 		parts = append(parts, "password = $"+strconv.Itoa(cnt))
 		values = append(values, user.Password)
 	}
+	if user.AccessType != nil {
+		cnt++
+		parts = append(parts, "access_type = $"+strconv.Itoa(cnt))
+		values = append(values, user.AccessType)
+	}
 	if len(parts) <= 0 {
 		return nil, ErrNothingToUpdate
 	}
@@ -75,14 +82,19 @@ func (u *usersStore) Update(user *UserUpdate) (*User, error) {
 }
 
 func (u *usersStore) Create(user *User) (*User, error) {
+	_, err := u.GetByUsername(user.Username)
+	if err == nil {
+		return nil, ErrUserWithUsernameAlreadyExist
+	}
+	user.Id = uuid.NewString()
 	hashPassword, err := setdata_common.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
 	user.Password = hashPassword
-	result, err := u.db.Exec("INSERT INTO users (id, username, password) "+
-		"VALUES ($1, $2, $3)",
-		user.Id, user.Username, user.Password,
+	result, err := u.db.Exec("INSERT INTO users (id, username, password, access_type) "+
+		"VALUES ($1, $2, $3, $4)",
+		user.Id, user.Username, user.Password, user.AccessType.ToString(),
 	)
 	if err != nil {
 		return nil, err
@@ -99,9 +111,22 @@ func (u *usersStore) Create(user *User) (*User, error) {
 
 func (u *usersStore) Get(id string) (*User, error) {
 	user := &User{}
-	err := u.db.QueryRow("select id, username, password, email, login_type, first_name, last_name "+
+	err := u.db.QueryRow("select id, username, password, access_type "+
 		"from users where id = $1 limit 1", id).
-		Scan(&user.Id, &user.Username, &user.Password)
+		Scan(&user.Id, &user.Username, &user.Password, &user.AccessType)
+	if err == sql.ErrNoRows {
+		return nil, ErrUserNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (u *usersStore) GetByUsername(username string) (*User, error) {
+	user := &User{}
+	err := u.db.QueryRow("select id, username, password, access_type "+
+		"from users where username = $1 limit 1", username).
+		Scan(&user.Id, &user.Username, &user.Password, &user.AccessType)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	} else if err != nil {
@@ -113,7 +138,7 @@ func (u *usersStore) Get(id string) (*User, error) {
 func (u *usersStore) List() ([]User, error) {
 	users := []User{}
 	var values []interface{}
-	q := "select id, username, password, email, login_type, first_name, last_name from users"
+	q := "select id, username, password, access_type from users"
 	//cnt := 1
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
@@ -122,7 +147,7 @@ func (u *usersStore) List() ([]User, error) {
 	defer rows.Close()
 	for rows.Next() {
 		user := User{}
-		err = rows.Scan(&user.Id, &user.Username, &user.Password)
+		err = rows.Scan(&user.Id, &user.Username, &user.Password, &user.AccessType)
 		if err != nil {
 			return nil, err
 		}
@@ -133,9 +158,9 @@ func (u *usersStore) List() ([]User, error) {
 
 func (u *usersStore) GetByUsernameAndPassword(username, password string) (*User, error) {
 	user := &User{}
-	err := u.db.QueryRow("select id, username, password, email, login_type, first_name, last_name "+
+	err := u.db.QueryRow("select id, username, password, access_type "+
 		"from users where username = $1 limit 1", &username).
-		Scan(&user.Id, &user.Username, &user.Password)
+		Scan(&user.Id, &user.Username, &user.Password, &user.AccessType)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	} else if err != nil {

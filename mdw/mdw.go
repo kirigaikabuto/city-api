@@ -1,4 +1,4 @@
-package auth
+package mdw
 
 import (
 	"encoding/json"

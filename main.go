@@ -8,6 +8,8 @@ import (
 	"github.com/kirigaikabuto/city-api/auth"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
+	"github.com/kirigaikabuto/city-api/mdw"
+	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -89,14 +91,14 @@ func run(c *cli.Context) error {
 		Params:   postgresParams,
 	}
 	//tkn store
-	tknStore, err := auth.NewTokenStore(auth.RedisConfig{
+	tknStore, err := mdw.NewTokenStore(mdw.RedisConfig{
 		Host: redisHost,
 		Port: redisPort,
 	})
 	if err != nil {
 		return err
 	}
-	mdw := auth.NewMiddleware(tknStore)
+	mdw := mdw.NewMiddleware(tknStore)
 	//applications
 	s3Uploader, err := common.NewS3Uploader(
 		s3endpoint,
@@ -124,6 +126,17 @@ func run(c *cli.Context) error {
 
 	r := gin.Default()
 	//r.Use(apiKewMdw.MakeCorsMiddleware())
+	usersPostgreStore, err := users.NewPostgresUsersStore(cfg)
+	if err != nil {
+		return err
+	}
+	usersPostgreStore.Create(&users.User{
+		Username:   "admin",
+		Password:   "admin",
+		AccessType: "admin",
+	})
+	authService := auth.NewService(usersPostgreStore, tknStore)
+	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
@@ -133,19 +146,15 @@ func run(c *cli.Context) error {
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
 		appGroup.GET("/list", applicationHttpEndpoints.MakeListApplication())
 	}
-	searchGroup := r.Group("/search")
-	{
-		searchGroup.GET("/street", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeSearchPlace())
-	}
 	eventGroup := r.Group("/event")
 	{
 		eventGroup.POST("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
 		eventGroup.GET("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeListEvent())
 	}
-	apiKeyGroup := r.Group("/api-key")
+	authGroup := r.Group("/auth")
 	{
-		apiKeyGroup.POST("/", mdw.MakeMiddleware())
-		apiKeyGroup.GET("/", mdw.MakeMiddleware())
+		authGroup.POST("/login", authHttpEndpoints.MakeLoginEndpoint())
+		authGroup.POST("/register", authHttpEndpoints.MakeRegisterEndpoint())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{

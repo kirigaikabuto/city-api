@@ -1,4 +1,4 @@
-package auth
+package mdw
 
 type TokenStore interface {
 	CreateToken(cmd *CreateTokenCommand) (*TokenDetails, error)
