@@ -63,11 +63,11 @@ func (h *httpEndpoints) MakeGetProfileEndpoint() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		cmd := &GetMyProfileCommand{}
 		userId, ok := context.Get("user_id")
-		cmd.UserId = userId.(string)
 		if !ok {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
 			return
 		}
+		cmd.UserId = userId.(string)
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
@@ -96,7 +96,7 @@ func (h *httpEndpoints) MakeUpdateProfileEndpoint() gin.HandlerFunc {
 			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
 			return
 		}
-		context.JSON(http.StatusCreated, resp)
+		context.JSON(http.StatusOK, resp)
 	}
 }
 

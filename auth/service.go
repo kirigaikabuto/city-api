@@ -22,10 +22,11 @@ type service struct {
 	s3         common.S3Uploader
 }
 
-func NewService(u users.UsersStore, t mdw.TokenStore) Service {
+func NewService(u users.UsersStore, t mdw.TokenStore, s3 common.S3Uploader) Service {
 	return &service{
 		userStore:  u,
 		tokenStore: t,
+		s3:         s3,
 	}
 }
 
@@ -72,10 +73,11 @@ func (s *service) UpdateProfile(cmd *UpdateProfileCommand) (*users.User, error) 
 	if err != nil {
 		return nil, err
 	}
-	if *cmd.Username != "" && *cmd.Username != oldUser.Username {
+	userUpdate.Id = cmd.Id
+	if cmd.Username != nil && *cmd.Username != oldUser.Username {
 		userUpdate.Username = cmd.Username
 	}
-	if *cmd.Password != "" {
+	if cmd.Password != nil {
 		hashedPassword, err := setdata_common.HashPassword(*cmd.Password)
 		if err != nil {
 			return nil, err
@@ -84,22 +86,22 @@ func (s *service) UpdateProfile(cmd *UpdateProfileCommand) (*users.User, error) 
 			userUpdate.Password = &hashedPassword
 		}
 	}
-	if *cmd.FirstName != "" && *cmd.FirstName != oldUser.FirstName {
+	if cmd.FirstName != nil && *cmd.FirstName != oldUser.FirstName {
 		userUpdate.FirstName = cmd.FirstName
 	}
-	if *cmd.LastName != "" && *cmd.LastName != oldUser.LastName {
+	if cmd.LastName != nil && *cmd.LastName != oldUser.LastName {
 		userUpdate.LastName = cmd.LastName
 	}
-	if *cmd.Email != "" && *cmd.Email != oldUser.Email {
+	if cmd.Email != nil && *cmd.Email != oldUser.Email {
 		userUpdate.Email = cmd.Email
 	}
-	if *cmd.PhoneNumber != "" && *cmd.PhoneNumber != oldUser.PhoneNumber {
+	if cmd.PhoneNumber != nil && *cmd.PhoneNumber != oldUser.PhoneNumber {
 		userUpdate.PhoneNumber = cmd.PhoneNumber
 	}
-	if *cmd.Gender != "" && *cmd.Gender != oldUser.Gender {
+	if cmd.Gender != nil && *cmd.Gender != oldUser.Gender {
 		userUpdate.Gender = cmd.Gender
 	}
-	if *cmd.Avatar != "" && *cmd.Avatar != oldUser.Avatar {
+	if cmd.Avatar != nil && *cmd.Avatar != oldUser.Avatar {
 		userUpdate.Avatar = cmd.Avatar
 	}
 	return s.userStore.Update(userUpdate)

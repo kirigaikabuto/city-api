@@ -136,11 +136,16 @@ func run(c *cli.Context) error {
 		return err
 	}
 	usersPostgreStore.Create(&users.User{
-		Username:   "admin",
-		Password:   "admin",
-		AccessType: "admin",
+		FirstName:   "yerassyl",
+		LastName:    "tleugazy",
+		Username:    "admin",
+		Password:    "admin",
+		Email:       "tleugazy98@gmail.com",
+		PhoneNumber: "12323",
+		Gender:      "male",
+		AccessType:  "admin",
 	})
-	authService := auth.NewService(usersPostgreStore, tknStore)
+	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
 
 	//feedback
@@ -176,9 +181,9 @@ func run(c *cli.Context) error {
 	{
 		authGroup.POST("/login", authHttpEndpoints.MakeLoginEndpoint())
 		authGroup.POST("/register", authHttpEndpoints.MakeRegisterEndpoint())
-		authGroup.GET("/profile", authHttpEndpoints.MakeGetProfileEndpoint())
-		authGroup.PUT("/profile", authHttpEndpoints.MakeUpdateProfileEndpoint())
-		authGroup.PUT("/avatar", authHttpEndpoints.MakeUploadAvatarEndpoint())
+		authGroup.GET("/profile", mdw.MakeMiddleware(), authHttpEndpoints.MakeGetProfileEndpoint())
+		authGroup.PUT("/profile", mdw.MakeMiddleware(), authHttpEndpoints.MakeUpdateProfileEndpoint())
+		authGroup.PUT("/avatar", mdw.MakeMiddleware(), authHttpEndpoints.MakeUploadAvatarEndpoint())
 	}
 	feedbackGroup := r.Group("/feedback")
 	{
