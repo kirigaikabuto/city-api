@@ -39,7 +39,7 @@ var (
 	postgresHost            = ""
 	postgresPort            = 5432
 	postgresParams          = ""
-	port                    = "5000"
+	port                    = "8000"
 	flags                   = []cli.Flag{
 		&cli.StringFlag{
 			Name:        "config, c",

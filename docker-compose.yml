@@ -25,10 +25,16 @@ services:
       - redis
       - database
     ports:
-      - "5000:5000"
+      - "8000:8000"
     environment:
-      REDIS_URL: "192.168.0.10:6379"
+      REDIS_URL: "192.168.0.14:6379"
       POSTGRES_USER: setdatauser
       POSTGRES_PASSWORD: 123456789
       POSTGRES_DB: city_db
     container_name: my-city-api
+  proxy:
+    build: proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
