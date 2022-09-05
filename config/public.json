@@ -1,18 +1,12 @@
 {
   "db": {
     "primary": {
-      "host": "192.168.0.10",
-      "port": 5433,
+      "host": "localhost",
+      "port": 5432,
       "name": "city_db",
-      "user": "setdatauser",
+      "user": "setdatauser1",
       "pass": "123456789",
       "param": "sslmode=disable"
-    }
-  },
-  "redis": {
-    "primary": {
-      "host": "192.168.0.10",
-      "port": "6379"
     }
   },
   "s3": {
@@ -23,12 +17,6 @@
       "s3secretKey": "Y+KTQJMLaIM6Y58fRcX6n79wQ8iZcPNpeSi6QnFt",
       "s3uploadedFilesBasePath": "https://emirfondcity.s3.us-east-1.amazonaws.com",
       "s3region": "us-east-1"
-    }
-  },
-  "2gis": {
-    "primary": {
-      "api_key": "ruvers7799",
-      "city": "Алматы"
     }
   }
 }

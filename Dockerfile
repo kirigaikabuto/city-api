@@ -12,7 +12,7 @@ RUN go mod download
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
-EXPOSE 8000
+EXPOSE 5000
 
 # Build the Go app
 RUN go build -o main .

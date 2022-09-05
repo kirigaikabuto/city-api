@@ -1,8 +1,8 @@
 {
   "db": {
     "primary": {
-      "host": "192.168.0.10",
-      "port": 5433,
+      "host": "localhost",
+      "port": 5432,
       "name": "city_db",
       "user": "setdatauser",
       "pass": "123456789",
@@ -11,7 +11,7 @@
   },
   "redis": {
     "primary": {
-      "host": "192.168.0.10",
+      "host": "localhost",
       "port": "6379"
     }
   },
