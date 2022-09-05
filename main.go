@@ -115,22 +115,6 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	applicationPostgreStore, err := applications.NewPostgresApplicationStore(cfg)
-	if err != nil {
-		return err
-	}
-	applicationService := applications.NewApplicationService(applicationPostgreStore, s3Uploader)
-	applicationHttpEndpoints := applications.NewHttpEndpoints(setdata_common.NewCommandHandler(applicationService))
-	//events
-	eventsPostgreStore, err := events.NewPostgresStore(cfg)
-	if err != nil {
-		return err
-	}
-	eventService := events.NewService(eventsPostgreStore)
-	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
-
-	r := gin.Default()
-	//r.Use(apiKewMdw.MakeCorsMiddleware())
 	usersPostgreStore, err := users.NewPostgresUsersStore(cfg)
 	if err != nil {
 		return err
@@ -145,6 +129,23 @@ func run(c *cli.Context) error {
 		Gender:      "male",
 		AccessType:  "admin",
 	})
+	applicationPostgreStore, err := applications.NewPostgresApplicationStore(cfg)
+	if err != nil {
+		return err
+	}
+	applicationService := applications.NewApplicationService(applicationPostgreStore, s3Uploader, usersPostgreStore)
+	applicationHttpEndpoints := applications.NewHttpEndpoints(setdata_common.NewCommandHandler(applicationService))
+	//events
+	eventsPostgreStore, err := events.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	eventService := events.NewService(eventsPostgreStore, s3Uploader)
+	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
+
+	r := gin.Default()
+	//r.Use(apiKewMdw.MakeCorsMiddleware())
+
 	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
 
@@ -162,20 +163,24 @@ func run(c *cli.Context) error {
 		return err
 	}
 	commentsService := comments.NewService(commentsPostgreStore)
-	commentsHtppEnpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
+	commentsHttpEnpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
+		appGroup.POST("/create", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeCreateApplicationWithAuth())
 		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
-		appGroup.PUT("/status", applicationHttpEndpoints.MakeUpdateStatus())
+		appGroup.PUT("/status", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
 		appGroup.GET("/list", applicationHttpEndpoints.MakeListApplication())
+		appGroup.GET("/my", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeAuthorizedUserListApplications())
 	}
 	eventGroup := r.Group("/event")
 	{
 		eventGroup.POST("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
 		eventGroup.GET("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeListEvent())
+		eventGroup.GET("/my", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeListEventByUserId())
+		eventGroup.PUT("/document", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeUploadDocument())
 	}
 	authGroup := r.Group("/auth")
 	{
@@ -192,9 +197,9 @@ func run(c *cli.Context) error {
 	}
 	commentsGroup := r.Group("/comment")
 	{
-		commentsGroup.POST("/", mdw.MakeMiddleware(), commentsHtppEnpoints.MakeCreateEndpoint())
-		commentsGroup.GET("/", mdw.MakeMiddleware(), commentsHtppEnpoints.MakeListEndpoint())
-		commentsGroup.GET("/obj", commentsHtppEnpoints.MakeListByObjTypeEndpoint())
+		commentsGroup.POST("/", mdw.MakeMiddleware(), commentsHttpEnpoints.MakeCreateEndpoint())
+		commentsGroup.GET("/", mdw.MakeMiddleware(), commentsHttpEnpoints.MakeListEndpoint())
+		commentsGroup.GET("/obj", commentsHttpEnpoints.MakeListByObjTypeEndpoint())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{
