@@ -50,8 +50,8 @@ func (s *store) Create(model *Event) (*Event, error) {
 	model.Id = uuid.New().String()
 	result, err := s.db.Exec(
 		"INSERT INTO events "+
-			"(id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date, user_id) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, current_date, $10)",
+			"(id, address, description, date, time, organizer_info, document_url, longitude, latitude, user_id, created_date) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, current_date)",
 		model.Id, model.Address, model.Description, model.Date, model.Time, model.OrganizerInfo, model.DocumentUrl, model.Longitude,
 		model.Latitude, model.UserId,
 	)

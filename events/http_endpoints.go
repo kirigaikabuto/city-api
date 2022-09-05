@@ -29,10 +29,15 @@ func (h *httpEndpoints) MakeCreateEvent() gin.HandlerFunc {
 		cmd := &CreateEventCommand{}
 		userId, ok := context.Get("user_id")
 		if !ok {
-			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
 			return
 		}
 		cmd.UserId = userId.(string)
+		err := context.ShouldBindJSON(&cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			return
+		}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
@@ -80,6 +85,7 @@ func (h *httpEndpoints) MakeUploadDocument() gin.HandlerFunc {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
 			return
 		}
+		cmd.Id = context.Request.URL.Query().Get("id")
 		cmd.UserId = userId.(string)
 		buf := bytes.NewBuffer(nil)
 		file, _, err := context.Request.FormFile("file")

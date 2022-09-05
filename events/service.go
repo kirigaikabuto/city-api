@@ -22,7 +22,7 @@ func NewService(e Store, s3 common.S3Uploader) Service {
 }
 
 func (s *service) Create(cmd *CreateEventCommand) (*Event, error) {
-	return s.eventStore.Create(cmd.Event)
+	return s.eventStore.Create(&cmd.Event)
 }
 
 func (s *service) List(cmd *ListEventCommand) ([]Event, error) {
@@ -42,6 +42,7 @@ func (s *service) UploadDocument(cmd *UploadDocumentCommand) (*UploadDocumentRes
 	if err != nil {
 		return nil, err
 	}
+	modelUpdate.DocumentUrl = &fileResponse.FileUrl
 	_, err = s.eventStore.Update(modelUpdate)
 	if err != nil {
 		return nil, err

@@ -3,7 +3,7 @@ package events
 import "bytes"
 
 type CreateEventCommand struct {
-	*Event
+	Event
 }
 
 func (cmd *CreateEventCommand) Exec(svc interface{}) (interface{}, error) {
