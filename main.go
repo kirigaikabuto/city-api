@@ -6,8 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kirigaikabuto/city-api/applications"
 	"github.com/kirigaikabuto/city-api/auth"
+	"github.com/kirigaikabuto/city-api/comments"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
+	"github.com/kirigaikabuto/city-api/feedback"
 	"github.com/kirigaikabuto/city-api/mdw"
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
@@ -140,6 +142,22 @@ func run(c *cli.Context) error {
 	})
 	authService := auth.NewService(usersPostgreStore, tknStore)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
+
+	//feedback
+	feedbackPostgreStore, err := feedback.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	feedbackService := feedback.NewService(feedbackPostgreStore)
+	feedbackHttpEndpoints := feedback.NewHttpEndpoints(setdata_common.NewCommandHandler(feedbackService))
+
+	//comments
+	commentsPostgreStore, err := comments.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	commentsService := comments.NewService(commentsPostgreStore)
+	commentsHtppEnpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
@@ -158,6 +176,20 @@ func run(c *cli.Context) error {
 	{
 		authGroup.POST("/login", authHttpEndpoints.MakeLoginEndpoint())
 		authGroup.POST("/register", authHttpEndpoints.MakeRegisterEndpoint())
+		authGroup.GET("/profile", authHttpEndpoints.MakeGetProfileEndpoint())
+		authGroup.PUT("/profile", authHttpEndpoints.MakeUpdateProfileEndpoint())
+		authGroup.PUT("/avatar", authHttpEndpoints.MakeUploadAvatarEndpoint())
+	}
+	feedbackGroup := r.Group("/feedback")
+	{
+		feedbackGroup.POST("/", feedbackHttpEndpoints.MakeCreateFeedback())
+		feedbackGroup.GET("/", feedbackHttpEndpoints.MakeListFeedback())
+	}
+	commentsGroup := r.Group("/comment")
+	{
+		commentsGroup.POST("/", mdw.MakeMiddleware(), commentsHtppEnpoints.MakeCreateEndpoint())
+		commentsGroup.GET("/", mdw.MakeMiddleware(), commentsHtppEnpoints.MakeListEndpoint())
+		commentsGroup.GET("/obj", commentsHtppEnpoints.MakeListByObjTypeEndpoint())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{

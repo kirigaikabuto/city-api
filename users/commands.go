@@ -1,11 +1,7 @@
 package users
 
 type CreateUserCommand struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	User
 }
 
 func (cmd *CreateUserCommand) Exec(svc interface{}) (interface{}, error) {
@@ -13,12 +9,7 @@ func (cmd *CreateUserCommand) Exec(svc interface{}) (interface{}, error) {
 }
 
 type UpdateUserCommand struct {
-	Id        string `json:"id"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	UserUpdate
 }
 
 func (cmd *UpdateUserCommand) Exec(svc interface{}) (interface{}, error) {

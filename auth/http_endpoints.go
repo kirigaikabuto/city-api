@@ -1,14 +1,19 @@
 package auth
 
 import (
+	"bytes"
 	"github.com/gin-gonic/gin"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
+	"io"
 	"net/http"
 )
 
 type HttpEndpoints interface {
 	MakeLoginEndpoint() gin.HandlerFunc
 	MakeRegisterEndpoint() gin.HandlerFunc
+	MakeGetProfileEndpoint() gin.HandlerFunc
+	MakeUpdateProfileEndpoint() gin.HandlerFunc
+	MakeUploadAvatarEndpoint() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -51,6 +56,83 @@ func (h *httpEndpoints) MakeRegisterEndpoint() gin.HandlerFunc {
 			return
 		}
 		context.JSON(http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeGetProfileEndpoint() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &GetMyProfileCommand{}
+		userId, ok := context.Get("user_id")
+		cmd.UserId = userId.(string)
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeUpdateProfileEndpoint() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &UpdateProfileCommand{}
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		err := context.ShouldBindJSON(&cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		cmd.Id = userId.(string)
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeUploadAvatarEndpoint() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &UploadAvatarCommand{}
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		cmd.UserId = userId.(string)
+		buf := bytes.NewBuffer(nil)
+		file, _, err := context.Request.FormFile("file")
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		_, err = io.Copy(buf, file)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		err = file.Close()
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		cmd.File = buf
+		cmd.ContentType = http.DetectContentType(buf.Bytes())
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
 	}
 }
 

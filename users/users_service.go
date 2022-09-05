@@ -22,12 +22,7 @@ func NewUserService(uStore UsersStore) UserService {
 }
 
 func (u *userService) CreateUser(cmd *CreateUserCommand) (*User, error) {
-	user := &User{
-		Username:   cmd.Username,
-		Password:   cmd.Password,
-		AccessType: AccessTypeUser,
-	}
-	return u.userStore.Create(user)
+	return u.userStore.Create(&cmd.User)
 }
 
 func (u *userService) UpdateUser(cmd *UpdateUserCommand) (*User, error) {
@@ -41,8 +36,8 @@ func (u *userService) UpdateUser(cmd *UpdateUserCommand) (*User, error) {
 		return nil, err
 	}
 	userUpdate := &UserUpdate{Id: cmd.Id}
-	if cmd.Password != "" {
-		hashedPassword, err := setdata_common.HashPassword(cmd.Password)
+	if *cmd.Password != "" {
+		hashedPassword, err := setdata_common.HashPassword(*cmd.Password)
 		if err != nil {
 			return nil, err
 		}
@@ -50,8 +45,8 @@ func (u *userService) UpdateUser(cmd *UpdateUserCommand) (*User, error) {
 			userUpdate.Password = &hashedPassword
 		}
 	}
-	if cmd.Username != "" && cmd.Username != oldUser.Username {
-		userUpdate.Username = &cmd.Username
+	if *cmd.Username != "" && *cmd.Username != oldUser.Username {
+		userUpdate.Username = cmd.Username
 	}
 	return u.userStore.Update(userUpdate)
 }
