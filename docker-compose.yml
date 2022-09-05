@@ -4,12 +4,14 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: setdatauser
-      POSTGRES_PASSWORD: 123456789
-      POSTGRES_DB: city_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DBNAME}
       PGDATA: /pg-data
     ports:
       - "5433:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
   redis:
     image: "redis:alpine"
     command: redis-server
@@ -25,12 +27,17 @@ services:
       - redis
       - database
     ports:
-      - "8000:8000"
+      - ${PORT}:${PORT}
     environment:
-      REDIS_URL: "192.168.0.14:6379"
-      POSTGRES_USER: setdatauser
-      POSTGRES_PASSWORD: 123456789
-      POSTGRES_DB: city_db
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DBNAME}
+      POSTGRES_PARAM: ${POSTGRES_PARAM}
+      POSTGRES_USER: ${POSTGRES_USER}
+      PORT: ${PORT}
     container_name: my-city-api
   proxy:
     build: proxy
@@ -38,3 +45,8 @@ services:
       - "80:80"
     depends_on:
       - backend
+    environment:
+      PORT: ${PORT}
+volumes:
+  database_data:
+    driver: local

@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -39,7 +40,7 @@ var (
 	postgresHost            = ""
 	postgresPort            = 5432
 	postgresParams          = ""
-	port                    = "8000"
+	port                    = ""
 	flags                   = []cli.Flag{
 		&cli.StringFlag{
 			Name:        "config, c",
@@ -63,20 +64,22 @@ func parseEnvFile() {
 		panic("main, fatal error while reading config file: " + err.Error())
 		return
 	}
-	postgresUser = viper.GetString("db.primary.user")
-	postgresPassword = viper.GetString("db.primary.pass")
-	postgresDatabaseName = viper.GetString("db.primary.name")
-	postgresParams = viper.GetString("db.primary.param")
-	postgresPort = viper.GetInt("db.primary.port")
-	postgresHost = viper.GetString("db.primary.host")
+	postgresUser = os.Getenv("POSTGRES_USER")
+	postgresPassword = os.Getenv("POSTGRES_PASSWORD")
+	postgresDatabaseName = os.Getenv("POSTGRES_DB")
+	postgresParams = os.Getenv("POSTGRES_PARAM")
+	postgresPortStr := os.Getenv("POSTGRES_PORT")
+	postgresPort, _ = strconv.Atoi(postgresPortStr)
+	postgresHost = os.Getenv("POSTGRES_HOST")
+	port = os.Getenv("PORT")
 	s3endpoint = viper.GetString("s3.primary.s3endpoint")
 	s3bucket = viper.GetString("s3.primary.s3bucket")
 	s3accessKey = viper.GetString("s3.primary.s3accessKey")
 	s3secretKey = viper.GetString("s3.primary.s3secretKey")
 	s3uploadedFilesBasePath = viper.GetString("s3.primary.s3uploadedFilesBasePath")
 	s3region = viper.GetString("s3.primary.s3region")
-	redisHost = viper.GetString("redis.primary.host")
-	redisPort = viper.GetString("redis.primary.port")
+	redisHost = os.Getenv("REDIS_HOST")
+	redisPort = os.Getenv("REDIS_PORT")
 }
 
 func run(c *cli.Context) error {
