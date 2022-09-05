@@ -137,7 +137,7 @@ func run(c *cli.Context) error {
 	})
 	authService := auth.NewService(usersPostgreStore, tknStore)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
-	appGroup := r.Group("/application")
+	appGroup := r.Group("/application", mdw.MakeMiddleware())
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
 		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
