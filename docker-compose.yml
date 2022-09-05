@@ -1,0 +1,42 @@
+version: '3.1'
+services:
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: setdatauser
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: city_db
+      PGDATA: /pg-data
+    ports:
+      - "5433:5432"
+  redis:
+    image: "redis:alpine"
+    command: redis-server
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    container_name: my-city-api-redis
+  backend:
+    build: .
+    image: kirigaikabuto/my-city-api
+    depends_on:
+      - database
+      - redis
+    ports:
+      - "8000:8000"
+    environment:
+      REDIS_URL: redis:6379
+      POSTGRES_USER: setdatauser
+      POSTGRES_PASSWORD: 123456789
+      POSTGRES_DB: city_db
+    container_name: my-city-api
+  proxy:
+    build: proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+volumes:
+  db-data:
