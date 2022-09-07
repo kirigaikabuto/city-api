@@ -217,7 +217,7 @@ func run(c *cli.Context) error {
 		newsGroup.PUT("/photo", mdw.MakeMiddleware(), newsHttpEndpoints.MakeUploadPhoto())
 		newsGroup.GET("/", newsHttpEndpoints.MakeListNews())
 		newsGroup.GET("/id", newsHttpEndpoints.MakeGetNewsById())
-		newsGroup.GET("/my", newsHttpEndpoints.MakeGetNewsByAuthorId())
+		newsGroup.GET("/my", mdw.MakeMiddleware(), newsHttpEndpoints.MakeGetNewsByAuthorId())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{

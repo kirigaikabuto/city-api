@@ -23,7 +23,7 @@ var marketplaceAppRepoQueries = []string{
 	);`,
 }
 
-type usersStore struct {
+type newsStore struct {
 	db *sql.DB
 }
 
@@ -39,11 +39,11 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 		}
 	}
 	db.SetMaxOpenConns(10)
-	store := &usersStore{db: db}
+	store := &newsStore{db: db}
 	return store, nil
 }
 
-func (u *usersStore) Create(obj *News) (*News, error) {
+func (u *newsStore) Create(obj *News) (*News, error) {
 	obj.Id = uuid.New().String()
 	result, err := u.db.Exec(
 		"INSERT INTO news "+
@@ -64,7 +64,7 @@ func (u *usersStore) Create(obj *News) (*News, error) {
 	return u.GetById(obj.Id)
 }
 
-func (u *usersStore) Update(obj *UpdateNews) (*News, error) {
+func (u *newsStore) Update(obj *UpdateNews) (*News, error) {
 	q := "update news set "
 	parts := []string{}
 	values := []interface{}{}
@@ -109,7 +109,7 @@ func (u *usersStore) Update(obj *UpdateNews) (*News, error) {
 	return u.GetById(obj.Id)
 }
 
-func (u *usersStore) List() ([]News, error) {
+func (u *newsStore) List() ([]News, error) {
 	var objects []News
 	var values []interface{}
 	q := "select " +
@@ -134,10 +134,10 @@ func (u *usersStore) List() ([]News, error) {
 	return objects, nil
 }
 
-func (u *usersStore) GetById(id string) (*News, error) {
+func (u *newsStore) GetById(id string) (*News, error) {
 	obj := &News{}
 	err := u.db.QueryRow("select id, title, small_description,"+
-		" description, photo_url, author_id, created_date from feedback where id = $1", id).
+		" description, photo_url, author_id, created_date from news where id = $1", id).
 		Scan(&obj.Id, &obj.Title,
 			&obj.SmallDescription, &obj.Description,
 			&obj.PhotoUrl, &obj.AuthorId, &obj.CreatedDate)
@@ -149,7 +149,7 @@ func (u *usersStore) GetById(id string) (*News, error) {
 	return obj, nil
 }
 
-func (u *usersStore) GetByAuthorId(authorId string) ([]News, error) {
+func (u *newsStore) GetByAuthorId(authorId string) ([]News, error) {
 	var objects []News
 	var values []interface{}
 	q := "select " +

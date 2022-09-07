@@ -37,20 +37,20 @@ func (s *service) UpdateNews(cmd *UpdateNewsCommand) (*News, error) {
 	if err != nil {
 		return nil, err
 	}
-	if *cmd.PhotoUrl != "" && oldNews.PhotoUrl != *cmd.PhotoUrl {
-		upd.PhotoUrl = cmd.PhotoUrl
-	}
-	if *cmd.Title != "" && oldNews.Title != *cmd.Title {
+	if cmd.Title != nil && oldNews.Title != *cmd.Title {
 		upd.Title = cmd.Title
 	}
-	if *cmd.SmallDescription != "" && oldNews.SmallDescription != *cmd.SmallDescription {
+	if cmd.SmallDescription != nil && oldNews.SmallDescription != *cmd.SmallDescription {
 		upd.SmallDescription = cmd.SmallDescription
 	}
-	if *cmd.Description != "" && oldNews.Description != *cmd.Description {
+	if cmd.Description != nil && oldNews.Description != *cmd.Description {
 		upd.Description = cmd.Description
 	}
-	if *cmd.AuthorId != "" && oldNews.AuthorId != *cmd.AuthorId {
+	if cmd.AuthorId != nil && oldNews.AuthorId != *cmd.AuthorId {
 		upd.AuthorId = cmd.AuthorId
+	}
+	if cmd.PhotoUrl != nil && oldNews.PhotoUrl != *cmd.PhotoUrl {
+		upd.PhotoUrl = cmd.PhotoUrl
 	}
 	return s.store.Update(upd)
 }
