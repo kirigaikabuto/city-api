@@ -11,6 +11,7 @@ import (
 	"github.com/kirigaikabuto/city-api/events"
 	"github.com/kirigaikabuto/city-api/feedback"
 	"github.com/kirigaikabuto/city-api/mdw"
+	"github.com/kirigaikabuto/city-api/news"
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"github.com/rs/zerolog/log"
@@ -164,11 +165,19 @@ func run(c *cli.Context) error {
 	}
 	commentsService := comments.NewService(commentsPostgreStore)
 	commentsHttpEnpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
+
+	//news
+	newsPostgreStore, err := news.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	newsService := news.NewService(s3Uploader, newsPostgreStore)
+	newsHttpEndpoints := news.NewHttpEndpoints(setdata_common.NewCommandHandler(newsService))
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
 		appGroup.POST("/create", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeCreateApplicationWithAuth())
-		appGroup.PUT("/file", applicationHttpEndpoints.MakeUploadApplicationFile())
+		appGroup.PUT("/file", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeUploadApplicationFile())
 		appGroup.PUT("/status", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
@@ -200,6 +209,15 @@ func run(c *cli.Context) error {
 		commentsGroup.POST("/", mdw.MakeMiddleware(), commentsHttpEnpoints.MakeCreateEndpoint())
 		commentsGroup.GET("/", mdw.MakeMiddleware(), commentsHttpEnpoints.MakeListEndpoint())
 		commentsGroup.GET("/obj", commentsHttpEnpoints.MakeListByObjTypeEndpoint())
+	}
+	newsGroup := r.Group("/news")
+	{
+		newsGroup.POST("/", mdw.MakeMiddleware(), newsHttpEndpoints.MakeCreateNews())
+		newsGroup.PUT("/", mdw.MakeMiddleware(), newsHttpEndpoints.MakeUpdateNews())
+		newsGroup.PUT("/photo", mdw.MakeMiddleware(), newsHttpEndpoints.MakeUploadPhoto())
+		newsGroup.GET("/", newsHttpEndpoints.MakeListNews())
+		newsGroup.GET("/id", newsHttpEndpoints.MakeGetNewsById())
+		newsGroup.GET("/my", newsHttpEndpoints.MakeGetNewsByAuthorId())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{

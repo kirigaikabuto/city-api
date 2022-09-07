@@ -1,5 +1,7 @@
 package news
 
+import "bytes"
+
 type CreateNewsCommand struct {
 	News
 }
@@ -37,4 +39,19 @@ type GetNewsByAuthorId struct {
 
 func (cmd *GetNewsByAuthorId) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).GetNewsByAuthorId(cmd)
+}
+
+type UploadPhotoCommand struct {
+	UserId      string        `json:"-"`
+	Id          string        `json:"id"`
+	File        *bytes.Buffer `json:"file" form:"file"`
+	ContentType string        `json:"-"`
+}
+
+func (cmd *UploadPhotoCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).UploadPhoto(cmd)
+}
+
+type UploadPhotoResponse struct {
+	FileUrl string `json:"file_url"`
 }
