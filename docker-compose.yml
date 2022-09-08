@@ -44,7 +44,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - front
+      - backend
     environment:
       PORT: ${PORT}
   front:
@@ -52,7 +52,7 @@ services:
       ports:
         - "8080:8080"
       depends_on:
-        - backend
+        - proxy
 volumes:
   database_data:
     driver: local
