@@ -47,12 +47,12 @@ services:
       - backend
     environment:
       PORT: ${PORT}
-#  front:
-#      build: clear-city
-#      ports:
-#        - "8080:8080"
-#      depends_on:
-#        - proxy
+  front:
+      build: ../clear-city
+      ports:
+        - "8080:8080"
+      depends_on:
+        - proxy
 volumes:
   database_data:
     driver: local
