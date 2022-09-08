@@ -1,6 +1,4 @@
 FROM golang:latest
-RUN apt-get update -y
-RUN apt-get install -y python
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
