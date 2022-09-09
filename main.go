@@ -12,6 +12,7 @@ import (
 	"github.com/kirigaikabuto/city-api/feedback"
 	"github.com/kirigaikabuto/city-api/mdw"
 	"github.com/kirigaikabuto/city-api/news"
+	"github.com/kirigaikabuto/city-api/user_events"
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"github.com/rs/zerolog/log"
@@ -173,6 +174,15 @@ func run(c *cli.Context) error {
 	}
 	newsService := news.NewService(s3Uploader, newsPostgreStore)
 	newsHttpEndpoints := news.NewHttpEndpoints(setdata_common.NewCommandHandler(newsService))
+
+	//user events
+	userEventsPostgreStore, err := user_events.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	userEventsService := user_events.NewService(userEventsPostgreStore, usersPostgreStore, eventsPostgreStore)
+	userEventsHttpEndpoints := user_events.NewHttpEndpoints(setdata_common.NewCommandHandler(userEventsService))
+
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
@@ -218,6 +228,14 @@ func run(c *cli.Context) error {
 		newsGroup.GET("/", newsHttpEndpoints.MakeListNews())
 		newsGroup.GET("/id", newsHttpEndpoints.MakeGetNewsById())
 		newsGroup.GET("/my", mdw.MakeMiddleware(), newsHttpEndpoints.MakeGetNewsByAuthorId())
+	}
+	userEventsGroup := r.Group("/user-events")
+	{
+		userEventsGroup.POST("/", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeCreateUserEvent())
+		userEventsGroup.GET("/userId", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeListByUserId())
+		userEventsGroup.GET("/eventId", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeListByEventId())
+		userEventsGroup.GET("/", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeListUserEvents())
+		userEventsGroup.GET("/id", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeGetUserEventById())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{
