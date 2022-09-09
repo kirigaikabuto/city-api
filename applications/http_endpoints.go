@@ -74,6 +74,7 @@ func (h *httpEndpoints) MakeCreateApplicationWithAuth() gin.HandlerFunc {
 
 func (h *httpEndpoints) MakeListApplication() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		setupResponse(c.Writer)
 		cmd := &ListApplicationsCommand{}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
