@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/kirigaikabuto/city-api/applications"
 	"github.com/kirigaikabuto/city-api/auth"
@@ -147,7 +148,17 @@ func run(c *cli.Context) error {
 
 	r := gin.Default()
 	//r.Use(apiKewMdw.MakeCorsMiddleware())
-
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://94.247.128.130:8080"},
+		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return origin == "http://94.247.128.130:8080"
+		},
+		MaxAge: 12 * time.Hour,
+	}))
 	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
 
