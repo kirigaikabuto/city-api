@@ -155,7 +155,7 @@ func run(c *cli.Context) error {
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
-			return origin == "http://94.247.128.130"
+			return origin == "http://94.247.128.130" || origin == "http://chistiy-gorod.kz"
 		},
 		MaxAge: 12 * time.Hour,
 	}))
