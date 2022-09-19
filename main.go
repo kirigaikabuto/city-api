@@ -157,7 +157,7 @@ func run(c *cli.Context) error {
 		AllowOriginFunc: func(origin string) bool {
 			return origin == "http://94.247.128.130" || origin == "http://chistiy-gorod.kz"
 		},
-		MaxAge: 12 * time.Hour,
+		MaxAge: 72 * time.Hour,
 	}))
 	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
