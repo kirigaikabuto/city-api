@@ -149,7 +149,7 @@ func run(c *cli.Context) error {
 	r := gin.Default()
 	//r.Use(apiKewMdw.MakeCorsMiddleware())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://94.247.128.130"},
+		AllowOrigins:     []string{"http://94.247.128.130", "http://chistiy-gorod.kz"},
 		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
 		AllowHeaders:     []string{"*"},
 		ExposeHeaders:    []string{"Content-Length"},
