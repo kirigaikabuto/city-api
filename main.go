@@ -83,7 +83,7 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	mdw := mdw.NewMiddleware(tknStore)
+	mdwEndpoint := mdw.NewMiddleware(tknStore)
 	//applications
 	s3Uploader, err := common.NewS3Uploader(
 		s3endpoint,
@@ -174,28 +174,29 @@ func run(c *cli.Context) error {
 	appGroup := r.Group("/application")
 	{
 		appGroup.POST("/", applicationHttpEndpoints.MakeCreateApplication())
-		appGroup.POST("/create", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeCreateApplicationWithAuth())
-		appGroup.PUT("/file", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeUploadApplicationFile())
-		appGroup.PUT("/status", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateStatus())
+		appGroup.POST("/create", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeCreateApplicationWithAuth())
+		appGroup.PUT("/file", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeUploadApplicationFile())
+		appGroup.PUT("/status", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateStatus())
 		appGroup.GET("/type", applicationHttpEndpoints.MakeListApplicationByType())
 		appGroup.GET("/id", applicationHttpEndpoints.MakeGetApplicationById())
 		appGroup.GET("/list", applicationHttpEndpoints.MakeListApplication())
-		appGroup.GET("/my", mdw.MakeMiddleware(), applicationHttpEndpoints.MakeAuthorizedUserListApplications())
+		appGroup.GET("/my", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeAuthorizedUserListApplications())
+		appGroup.PUT("/", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateApplication())
 	}
 	eventGroup := r.Group("/event")
 	{
-		eventGroup.POST("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
-		eventGroup.GET("/", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeListEvent())
-		eventGroup.GET("/my", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeListEventByUserId())
-		eventGroup.PUT("/document", mdw.MakeMiddleware(), eventsHttpEndpoints.MakeUploadDocument())
+		eventGroup.POST("/", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeCreateEvent())
+		eventGroup.GET("/", eventsHttpEndpoints.MakeListEvent())
+		eventGroup.GET("/my", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeListEventByUserId())
+		eventGroup.PUT("/document", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeUploadDocument())
 	}
 	authGroup := r.Group("/auth")
 	{
 		authGroup.POST("/login", authHttpEndpoints.MakeLoginEndpoint())
 		authGroup.POST("/register", authHttpEndpoints.MakeRegisterEndpoint())
-		authGroup.GET("/profile", mdw.MakeMiddleware(), authHttpEndpoints.MakeGetProfileEndpoint())
-		authGroup.PUT("/profile", mdw.MakeMiddleware(), authHttpEndpoints.MakeUpdateProfileEndpoint())
-		authGroup.PUT("/avatar", mdw.MakeMiddleware(), authHttpEndpoints.MakeUploadAvatarEndpoint())
+		authGroup.GET("/profile", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeGetProfileEndpoint())
+		authGroup.PUT("/profile", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeUpdateProfileEndpoint())
+		authGroup.PUT("/avatar", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeUploadAvatarEndpoint())
 	}
 	feedbackGroup := r.Group("/feedback")
 	{
@@ -204,26 +205,26 @@ func run(c *cli.Context) error {
 	}
 	commentsGroup := r.Group("/comment")
 	{
-		commentsGroup.POST("/", mdw.MakeMiddleware(), commentsHttpEnpoints.MakeCreateEndpoint())
-		commentsGroup.GET("/", mdw.MakeMiddleware(), commentsHttpEnpoints.MakeListEndpoint())
+		commentsGroup.POST("/", mdwEndpoint.MakeMiddleware(), commentsHttpEnpoints.MakeCreateEndpoint())
+		commentsGroup.GET("/", mdwEndpoint.MakeMiddleware(), commentsHttpEnpoints.MakeListEndpoint())
 		commentsGroup.GET("/obj", commentsHttpEnpoints.MakeListByObjTypeEndpoint())
 	}
 	newsGroup := r.Group("/news")
 	{
-		newsGroup.POST("/", mdw.MakeMiddleware(), newsHttpEndpoints.MakeCreateNews())
-		newsGroup.PUT("/", mdw.MakeMiddleware(), newsHttpEndpoints.MakeUpdateNews())
-		newsGroup.PUT("/photo", mdw.MakeMiddleware(), newsHttpEndpoints.MakeUploadPhoto())
+		newsGroup.POST("/", mdwEndpoint.MakeMiddleware(), newsHttpEndpoints.MakeCreateNews())
+		newsGroup.PUT("/", mdwEndpoint.MakeMiddleware(), newsHttpEndpoints.MakeUpdateNews())
+		newsGroup.PUT("/photo", mdwEndpoint.MakeMiddleware(), newsHttpEndpoints.MakeUploadPhoto())
 		newsGroup.GET("/", newsHttpEndpoints.MakeListNews())
 		newsGroup.GET("/id", newsHttpEndpoints.MakeGetNewsById())
-		newsGroup.GET("/my", mdw.MakeMiddleware(), newsHttpEndpoints.MakeGetNewsByAuthorId())
+		newsGroup.GET("/my", mdwEndpoint.MakeMiddleware(), newsHttpEndpoints.MakeGetNewsByAuthorId())
 	}
 	userEventsGroup := r.Group("/user-events")
 	{
-		userEventsGroup.POST("/", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeCreateUserEvent())
-		userEventsGroup.GET("/userId", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeListByUserId())
-		userEventsGroup.GET("/eventId", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeListByEventId())
-		userEventsGroup.GET("/", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeListUserEvents())
-		userEventsGroup.GET("/id", mdw.MakeMiddleware(), userEventsHttpEndpoints.MakeGetUserEventById())
+		userEventsGroup.POST("/", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeCreateUserEvent())
+		userEventsGroup.GET("/userId", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListByUserId())
+		userEventsGroup.GET("/eventId", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListByEventId())
+		userEventsGroup.GET("/", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListUserEvents())
+		userEventsGroup.GET("/id", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeGetUserEventById())
 	}
 	log.Info().Msg("app is running on port:" + port)
 	server := &http.Server{

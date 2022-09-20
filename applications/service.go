@@ -24,6 +24,7 @@ type Service interface {
 	GetApplicationById(cmd *GetApplicationByIdCommand) (*Application, error)
 	UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (*Application, error)
 	ListApplicationsByUserId(cmd *ListApplicationsByUserIdCommand) ([]Application, error)
+	UpdateApplication(cmd *UpdateApplicationCommand) (*Application, error)
 
 	SearchPlace(cmd *SearchPlaceCommand) ([]Place, error)
 }
@@ -173,4 +174,40 @@ func (s *service) UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (
 
 func (s *service) ListApplicationsByUserId(cmd *ListApplicationsByUserIdCommand) ([]Application, error) {
 	return s.appStore.ListApplicationsByUserId(cmd.UserId)
+}
+
+func (s *service) UpdateApplication(cmd *UpdateApplicationCommand) (*Application, error) {
+	updateModel := &ApplicationUpdate{Id: cmd.Id}
+	currentModel, err := s.appStore.GetById(cmd.Id)
+	if err != nil {
+		return nil, err
+	}
+	if cmd.FirstName != nil && *cmd.FirstName != currentModel.FirstName {
+		updateModel.FirstName = cmd.FirstName
+	}
+	if cmd.LastName != nil && *cmd.LastName != currentModel.LastName {
+		updateModel.LastName = cmd.LastName
+	}
+	if cmd.Patronymic != nil && *cmd.Patronymic != currentModel.Patronymic {
+		updateModel.Patronymic = cmd.Patronymic
+	}
+	if cmd.PhoneNumber != nil && *cmd.PhoneNumber != currentModel.PhoneNumber {
+		updateModel.PhoneNumber = cmd.PhoneNumber
+	}
+	if cmd.Address != nil && *cmd.Address != currentModel.Address {
+		updateModel.Address = cmd.Address
+	}
+	if cmd.Latitude != nil && *cmd.Latitude != currentModel.Latitude {
+		updateModel.Latitude = cmd.Latitude
+	}
+	if cmd.Longitude != nil && *cmd.Longitude != currentModel.Longitude {
+		updateModel.Longitude = cmd.Longitude
+	}
+	if cmd.AppType != nil && *cmd.AppType != currentModel.AppType {
+		updateModel.AppType = cmd.AppType
+	}
+	if cmd.Message != nil && *cmd.Message != currentModel.Message {
+		updateModel.Message = cmd.Message
+	}
+	return s.appStore.Update(updateModel)
 }

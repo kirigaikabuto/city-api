@@ -169,6 +169,46 @@ func (a *applicationStore) Update(model *ApplicationUpdate) (*Application, error
 	parts := []string{}
 	values := []interface{}{}
 	cnt := 0
+	if model.AppType != nil {
+		cnt++
+		parts = append(parts, "app_type = $"+strconv.Itoa(cnt))
+		values = append(values, model.AppType.ToString())
+	}
+	if model.Message != nil {
+		cnt++
+		parts = append(parts, "message = $"+strconv.Itoa(cnt))
+		values = append(values, model.Message)
+	}
+	if model.FirstName != nil {
+		cnt++
+		parts = append(parts, "first_name = $"+strconv.Itoa(cnt))
+		values = append(values, model.FirstName)
+	}
+	if model.LastName != nil {
+		cnt++
+		parts = append(parts, "last_name = $"+strconv.Itoa(cnt))
+		values = append(values, model.LastName)
+	}
+	if model.Patronymic != nil {
+		cnt++
+		parts = append(parts, "patronymic = $"+strconv.Itoa(cnt))
+		values = append(values, model.Patronymic)
+	}
+	if model.Address != nil {
+		cnt++
+		parts = append(parts, "address = $"+strconv.Itoa(cnt))
+		values = append(values, model.Address)
+	}
+	if model.Latitude != nil {
+		cnt++
+		parts = append(parts, "latitude = $"+strconv.Itoa(cnt))
+		values = append(values, model.Latitude)
+	}
+	if model.Longitude != nil {
+		cnt++
+		parts = append(parts, "longitude = $"+strconv.Itoa(cnt))
+		values = append(values, model.Longitude)
+	}
 	if model.PhotoUrl != nil {
 		cnt++
 		parts = append(parts, "photo_url = $"+strconv.Itoa(cnt))

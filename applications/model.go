@@ -19,10 +19,19 @@ type Application struct {
 }
 
 type ApplicationUpdate struct {
-	Id        string  `json:"id"`
-	PhotoUrl  *string `json:"photo_url"`
-	VideoUrl  *string `json:"video_url"`
-	AppStatus *Status `json:"app_status"`
+	Id          string       `json:"id"`
+	PhotoUrl    *string      `json:"photo_url"`
+	VideoUrl    *string      `json:"video_url"`
+	AppStatus   *Status      `json:"app_status"`
+	AppType     *ProblemType `json:"app_type"`
+	Message     *string      `json:"message"`
+	FirstName   *string      `json:"first_name"`
+	LastName    *string      `json:"last_name"`
+	Patronymic  *string      `json:"patronymic"`
+	PhoneNumber *string      `json:"phone_number"`
+	Address     *string      `json:"address"`
+	Longitude   *float64     `json:"longitude"`
+	Latitude    *float64     `json:"latitude"`
 }
 
 type ProblemType string

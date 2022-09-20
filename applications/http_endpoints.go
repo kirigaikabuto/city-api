@@ -19,6 +19,7 @@ type HttpEndpoints interface {
 	MakeGetApplicationById() gin.HandlerFunc
 	MakeUpdateStatus() gin.HandlerFunc
 	MakeAuthorizedUserListApplications() gin.HandlerFunc
+	MakeUpdateApplication() gin.HandlerFunc
 
 	MakeSearchPlace() gin.HandlerFunc
 }
@@ -219,6 +220,29 @@ func (h *httpEndpoints) MakeAuthorizedUserListApplications() gin.HandlerFunc {
 			return
 		}
 		context.JSON(http.StatusCreated, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeUpdateApplication() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &UpdateApplicationCommand{}
+		id := context.Request.URL.Query().Get("id")
+		if id == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoApplicationId))
+			return
+		}
+		err := context.ShouldBindJSON(&cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		cmd.Id = id
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
 	}
 }
 

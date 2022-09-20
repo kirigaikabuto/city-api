@@ -119,3 +119,11 @@ type ListApplicationsByUserIdCommand struct {
 func (cmd *ListApplicationsByUserIdCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).ListApplicationsByUserId(cmd)
 }
+
+type UpdateApplicationCommand struct {
+	ApplicationUpdate
+}
+
+func (cmd *UpdateApplicationCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).UpdateApplication(cmd)
+}
