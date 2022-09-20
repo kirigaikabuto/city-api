@@ -17,4 +17,4 @@ EXPOSE 5001
 RUN go build -o main .
 
 # Command to run the executable
-CMD ./main -c=docker_config
+CMD ./main

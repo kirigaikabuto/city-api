@@ -17,7 +17,6 @@ import (
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"github.com/rs/zerolog/log"
-	"github.com/spf13/viper"
 	"github.com/urfave/cli"
 	"net/http"
 	"os"
@@ -28,8 +27,6 @@ import (
 )
 
 var (
-	configName              = "main"
-	configPath              = "/config/"
 	version                 = "0.0.1"
 	redisHost               = ""
 	redisPort               = ""
@@ -46,29 +43,9 @@ var (
 	postgresPort            = 5432
 	postgresParams          = ""
 	port                    = ""
-	flags                   = []cli.Flag{
-		&cli.StringFlag{
-			Name:        "config, c",
-			Usage:       "path to .env config file",
-			Value:       "main",
-			Destination: &configName,
-		},
-	}
 )
 
 func parseEnvFile() {
-	filepath, err := os.Getwd()
-	if err != nil {
-		panic("main, get rootDir error" + err.Error())
-		return
-	}
-	viper.AddConfigPath(filepath + configPath)
-	viper.SetConfigName(configName)
-	err = viper.ReadInConfig()
-	if err != nil {
-		panic("main, fatal error while reading config file: " + err.Error())
-		return
-	}
 	postgresUser = os.Getenv("POSTGRES_USER")
 	postgresPassword = os.Getenv("POSTGRES_PASSWORD")
 	postgresDatabaseName = os.Getenv("POSTGRES_DB")
@@ -77,12 +54,12 @@ func parseEnvFile() {
 	postgresPort, _ = strconv.Atoi(postgresPortStr)
 	postgresHost = os.Getenv("POSTGRES_HOST")
 	port = os.Getenv("PORT")
-	s3endpoint = viper.GetString("s3.primary.s3endpoint")
-	s3bucket = viper.GetString("s3.primary.s3bucket")
-	s3accessKey = viper.GetString("s3.primary.s3accessKey")
-	s3secretKey = viper.GetString("s3.primary.s3secretKey")
-	s3uploadedFilesBasePath = viper.GetString("s3.primary.s3uploadedFilesBasePath")
-	s3region = viper.GetString("s3.primary.s3region")
+	s3endpoint = os.Getenv("S3_ENDPOINT")
+	s3bucket = os.Getenv("S3_BUCKET")
+	s3accessKey = os.Getenv("S3_ACCESS_KEY")
+	s3secretKey = os.Getenv("S3_SECRET_KEY")
+	s3uploadedFilesBasePath = os.Getenv("S3_FILE_UPLOAD_PATH")
+	s3region = os.Getenv("S3_REGION")
 	redisHost = os.Getenv("REDIS_HOST")
 	redisPort = os.Getenv("REDIS_PORT")
 }
@@ -280,7 +257,6 @@ func main() {
 	app.Usage = "city api"
 	app.UsageText = "city api"
 	app.Version = version
-	app.Flags = flags
 	app.Action = run
 	err := app.Run(os.Args)
 	if err != nil {
