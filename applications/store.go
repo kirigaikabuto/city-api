@@ -7,4 +7,5 @@ type Store interface {
 	GetByProblemType(problemType ProblemType) ([]Application, error)
 	Update(model *ApplicationUpdate) (*Application, error)
 	ListApplicationsByUserId(userId string) ([]Application, error)
+	RemoveApplication(id string) error
 }

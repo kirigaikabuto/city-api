@@ -277,3 +277,11 @@ func (a *applicationStore) ListApplicationsByUserId(userId string) ([]Applicatio
 	}
 	return objects, nil
 }
+
+func (a *applicationStore) RemoveApplication(id string) error {
+	_, err := a.db.Exec("DELETE FROM Applications WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

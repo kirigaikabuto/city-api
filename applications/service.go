@@ -25,6 +25,7 @@ type Service interface {
 	UpdateApplicationStatus(cmd *UpdateApplicationStatusCommand) (*Application, error)
 	ListApplicationsByUserId(cmd *ListApplicationsByUserIdCommand) ([]Application, error)
 	UpdateApplication(cmd *UpdateApplicationCommand) (*Application, error)
+	RemoveApplication(cmd *RemoveApplicationCommand) error
 
 	SearchPlace(cmd *SearchPlaceCommand) ([]Place, error)
 }
@@ -210,4 +211,8 @@ func (s *service) UpdateApplication(cmd *UpdateApplicationCommand) (*Application
 		updateModel.Message = cmd.Message
 	}
 	return s.appStore.Update(updateModel)
+}
+
+func (s *service) RemoveApplication(cmd *RemoveApplicationCommand) error {
+	return s.appStore.RemoveApplication(cmd.Id)
 }

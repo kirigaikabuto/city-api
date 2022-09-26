@@ -182,6 +182,7 @@ func run(c *cli.Context) error {
 		appGroup.GET("/list", applicationHttpEndpoints.MakeListApplication())
 		appGroup.GET("/my", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeAuthorizedUserListApplications())
 		appGroup.PUT("/", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateApplication())
+		appGroup.DELETE("/", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeRemoveApplication())
 	}
 	eventGroup := r.Group("/event")
 	{

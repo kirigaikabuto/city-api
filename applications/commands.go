@@ -127,3 +127,11 @@ type UpdateApplicationCommand struct {
 func (cmd *UpdateApplicationCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).UpdateApplication(cmd)
 }
+
+type RemoveApplicationCommand struct {
+	Id string `json:"id"`
+}
+
+func (cmd *RemoveApplicationCommand) Exec(svc interface{}) (interface{}, error) {
+	return nil, svc.(Service).RemoveApplication(cmd)
+}
