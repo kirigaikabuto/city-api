@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/mdw"
+	sms_store "github.com/kirigaikabuto/city-api/sms-store"
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"strings"
@@ -17,16 +18,20 @@ type Service interface {
 }
 
 type service struct {
-	userStore  users.UsersStore
-	tokenStore mdw.TokenStore
-	s3         common.S3Uploader
+	userStore        users.UsersStore
+	tokenStore       mdw.TokenStore
+	s3               common.S3Uploader
+	smsPostgresStore sms_store.Store
+	smsTwilioStore   sms_store.Store
 }
 
-func NewService(u users.UsersStore, t mdw.TokenStore, s3 common.S3Uploader) Service {
+func NewService(u users.UsersStore, t mdw.TokenStore, s3 common.S3Uploader, smsPostgresStore sms_store.Store, smsTwilioStore sms_store.Store) Service {
 	return &service{
-		userStore:  u,
-		tokenStore: t,
-		s3:         s3,
+		userStore:        u,
+		tokenStore:       t,
+		s3:               s3,
+		smsPostgresStore: smsPostgresStore,
+		smsTwilioStore:   smsTwilioStore,
 	}
 }
 
@@ -56,6 +61,26 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 		return nil, ErrNoGenderType
 	}
 	cmd.AccessType = users.AccessTypeUser
+	_, err := s.smsPostgresStore.Create(&sms_store.SmsCode{
+		Title: "sms messsage1",
+		Type:  "sms type",
+		From:  "me",
+		To:    cmd.PhoneNumber,
+		Body:  "message",
+	})
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.smsTwilioStore.Create(&sms_store.SmsCode{
+		Title: "sms messsage1",
+		Type:  "sms type",
+		From:  "+19472033984",
+		To:    cmd.PhoneNumber,
+		Body:  "message",
+	})
+	if err != nil {
+		return nil, err
+	}
 	user, err := s.userStore.Create(&cmd.User)
 	if err != nil {
 		return nil, err

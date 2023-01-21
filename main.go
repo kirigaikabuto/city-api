@@ -13,6 +13,7 @@ import (
 	"github.com/kirigaikabuto/city-api/feedback"
 	"github.com/kirigaikabuto/city-api/mdw"
 	"github.com/kirigaikabuto/city-api/news"
+	sms_store "github.com/kirigaikabuto/city-api/sms-store"
 	"github.com/kirigaikabuto/city-api/user_events"
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
@@ -122,6 +123,16 @@ func run(c *cli.Context) error {
 	}
 	eventService := events.NewService(eventsPostgreStore, s3Uploader)
 	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
+	//sms
+	smsPostgreStore, err := sms_store.NewPostgresStore(cfg)
+	if err != nil {
+		return err
+	}
+	smsTwilioStore := sms_store.NewTwilioStore(common.TwilioConfig{
+		AccountSID:  "AC30f9614064e59aeff1890bd69cce5d7b",
+		AuthToken:   "3143c79dc22dae6900ebe93a40e1a7ce",
+		PhoneNumber: "+19472033984",
+	})
 
 	r := gin.Default()
 	//r.Use(apiKewMdw.MakeCorsMiddleware())
@@ -136,7 +147,7 @@ func run(c *cli.Context) error {
 		},
 		MaxAge: 72 * time.Hour,
 	}))
-	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader)
+	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader, smsPostgreStore, smsTwilioStore)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
 
 	//feedback
