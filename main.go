@@ -109,6 +109,7 @@ func run(c *cli.Context) error {
 		PhoneNumber: "12323",
 		Gender:      "male",
 		AccessType:  "admin",
+		IsVerified:  true,
 	})
 	applicationPostgreStore, err := applications.NewPostgresApplicationStore(cfg)
 	if err != nil {

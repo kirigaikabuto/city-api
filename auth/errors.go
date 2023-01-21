@@ -14,4 +14,5 @@ var (
 	ErrFileShouldBeOnlyImageOrVideo = com.NewMiddleError(errors.New("file should be image or video"), 500, 10)
 	ErrNoCodeInQuery                = com.NewMiddleError(errors.New("no code in query"), 400, 11)
 	ErrInvalidCode                  = com.NewMiddleError(errors.New("invalid code"), 400, 12)
+	ErrUserIsNotVerified            = com.NewMiddleError(errors.New("user is not verified"), 400, 13)
 )

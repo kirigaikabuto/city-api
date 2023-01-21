@@ -23,6 +23,7 @@ var marketplaceAppRepoQueries = []string{
 		gender TEXT,
 		access_type TEXT,
 		avatar TEXT,
+		is_verified bool,
 		PRIMARY KEY(id)
 	);`,
 }
@@ -102,6 +103,11 @@ func (u *usersStore) Update(user *UserUpdate) (*User, error) {
 		parts = append(parts, "avatar = $"+strconv.Itoa(cnt))
 		values = append(values, user.Avatar)
 	}
+	if user.IsVerified != nil {
+		cnt++
+		parts = append(parts, "is_verified = $"+strconv.Itoa(cnt))
+		values = append(values, user.IsVerified)
+	}
 	if len(parts) <= 0 {
 		return nil, ErrNothingToUpdate
 	}
@@ -133,9 +139,11 @@ func (u *usersStore) Create(user *User) (*User, error) {
 		return nil, err
 	}
 	user.Password = hashPassword
-	result, err := u.db.Exec("INSERT INTO users (id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-		user.Id, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Gender.ToString(), user.Avatar, user.Username, user.Password, user.AccessType.ToString(),
+	result, err := u.db.Exec("INSERT INTO users (id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified) "+
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+		user.Id, user.FirstName, user.LastName, user.Email,
+		user.PhoneNumber, user.Gender.ToString(), user.Avatar, user.Username,
+		user.Password, user.AccessType.ToString(), user.IsVerified,
 	)
 	if err != nil {
 		return nil, err
@@ -152,9 +160,9 @@ func (u *usersStore) Create(user *User) (*User, error) {
 
 func (u *usersStore) Get(id string) (*User, error) {
 	user := &User{}
-	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type "+
+	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
 		"from users where id = $1 limit 1", id).
-		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType)
+		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	} else if err != nil {
@@ -165,9 +173,9 @@ func (u *usersStore) Get(id string) (*User, error) {
 
 func (u *usersStore) GetByUsername(username string) (*User, error) {
 	user := &User{}
-	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type "+
+	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
 		"from users where username = $1 limit 1", username).
-		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType)
+		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	} else if err != nil {
@@ -179,7 +187,7 @@ func (u *usersStore) GetByUsername(username string) (*User, error) {
 func (u *usersStore) List() ([]User, error) {
 	users := []User{}
 	var values []interface{}
-	q := "select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type from users"
+	q := "select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified from users"
 	//cnt := 1
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
@@ -188,7 +196,7 @@ func (u *usersStore) List() ([]User, error) {
 	defer rows.Close()
 	for rows.Next() {
 		user := User{}
-		err = rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType)
+		err = rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 		if err != nil {
 			return nil, err
 		}
@@ -199,9 +207,9 @@ func (u *usersStore) List() ([]User, error) {
 
 func (u *usersStore) GetByUsernameAndPassword(username, password string) (*User, error) {
 	user := &User{}
-	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type "+
+	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
 		"from users where username = $1 limit 1", &username).
-		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType)
+		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
 	} else if err != nil {

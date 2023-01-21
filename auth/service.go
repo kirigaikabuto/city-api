@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/mdw"
@@ -47,6 +46,9 @@ func (s *service) Login(cmd *LoginCommand) (*mdw.Token, error) {
 	user, err := s.userStore.GetByUsernameAndPassword(cmd.Username, cmd.Password)
 	if err != nil {
 		return nil, err
+	}
+	if !user.IsVerified {
+		return nil, ErrUserIsNotVerified
 	}
 	tkn, err := s.tokenStore.CreateToken(&mdw.CreateTokenCommand{
 		UserId:   user.Id,
@@ -183,7 +185,11 @@ func (s *service) VerifyCode(cmd *VerifyCodeCommand) error {
 	} else if err != nil {
 		return err
 	}
-	fmt.Println(userId)
+	boolVal := true
+	_, err = s.userStore.Update(&users.UserUpdate{IsVerified: &boolVal, Id: userId})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
