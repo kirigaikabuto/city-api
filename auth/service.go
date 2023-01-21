@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+	"github.com/go-redis/redis"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/mdw"
 	sms_store "github.com/kirigaikabuto/city-api/sms-store"
@@ -17,6 +19,7 @@ type Service interface {
 	GetProfile(cmd *GetMyProfileCommand) (*users.User, error)
 	UpdateProfile(cmd *UpdateProfileCommand) (*users.User, error)
 	UploadAvatar(cmd *UploadAvatarCommand) (*UploadAvatarResponse, error)
+	VerifyCode(cmd *VerifyCodeCommand) error
 }
 
 type service struct {
@@ -173,6 +176,17 @@ func (s *service) UploadAvatar(cmd *UploadAvatarCommand) (*UploadAvatarResponse,
 	return response, nil
 }
 
+func (s *service) VerifyCode(cmd *VerifyCodeCommand) error {
+	userId, err := s.tokenStore.GetUserIdByCode(cmd.Code)
+	if err != nil && err == redis.Nil {
+		return ErrInvalidCode
+	} else if err != nil {
+		return err
+	}
+	fmt.Println(userId)
+	return nil
+}
+
 func GenerateOTP(length int) (string, error) {
 	otpChars := "1234567890"
 	buffer := make([]byte, length)
@@ -180,11 +194,9 @@ func GenerateOTP(length int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	otpCharsLength := len(otpChars)
 	for i := 0; i < length; i++ {
 		buffer[i] = otpChars[int(buffer[i])%otpCharsLength]
 	}
-
 	return string(buffer), nil
 }

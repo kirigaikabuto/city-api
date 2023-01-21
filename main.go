@@ -209,6 +209,7 @@ func run(c *cli.Context) error {
 		authGroup.GET("/profile", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeGetProfileEndpoint())
 		authGroup.PUT("/profile", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeUpdateProfileEndpoint())
 		authGroup.PUT("/avatar", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeUploadAvatarEndpoint())
+		authGroup.GET("/verify", authHttpEndpoints.MakeVerifyCodeEndpoint())
 	}
 	feedbackGroup := r.Group("/feedback")
 	{

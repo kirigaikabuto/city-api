@@ -12,4 +12,6 @@ var (
 	ErrCannotDetectContentType      = com.NewMiddleError(errors.New("cannot detect content type"), 500, 8)
 	ErrInCheckForContentType        = com.NewMiddleError(errors.New("check for content type incorrect"), 500, 9)
 	ErrFileShouldBeOnlyImageOrVideo = com.NewMiddleError(errors.New("file should be image or video"), 500, 10)
+	ErrNoCodeInQuery                = com.NewMiddleError(errors.New("no code in query"), 400, 11)
+	ErrInvalidCode                  = com.NewMiddleError(errors.New("invalid code"), 400, 12)
 )

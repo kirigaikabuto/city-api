@@ -14,6 +14,7 @@ type HttpEndpoints interface {
 	MakeGetProfileEndpoint() gin.HandlerFunc
 	MakeUpdateProfileEndpoint() gin.HandlerFunc
 	MakeUploadAvatarEndpoint() gin.HandlerFunc
+	MakeVerifyCodeEndpoint() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -127,6 +128,24 @@ func (h *httpEndpoints) MakeUploadAvatarEndpoint() gin.HandlerFunc {
 		}
 		cmd.File = buf
 		cmd.ContentType = http.DetectContentType(buf.Bytes())
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeVerifyCodeEndpoint() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &VerifyCodeCommand{}
+		code := context.Request.URL.Query().Get("code")
+		if code == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoCodeInQuery))
+			return
+		}
+		cmd.Code = code
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))

@@ -51,3 +51,11 @@ func (cmd *UploadAvatarCommand) Exec(svc interface{}) (interface{}, error) {
 type UploadAvatarResponse struct {
 	FileUrl string `json:"file_url"`
 }
+
+type VerifyCodeCommand struct {
+	Code string `json:"code"`
+}
+
+func (cmd *VerifyCodeCommand) Exec(svc interface{}) (interface{}, error) {
+	return nil, svc.(Service).VerifyCode(cmd)
+}
