@@ -11,6 +11,7 @@ type User struct {
 	Gender      Gender     `json:"gender"`
 	AccessType  AccessType `json:"access_type"`
 	Avatar      string     `json:"avatar"`
+	IsVerified  bool       `json:"is_verified"`
 }
 
 type UserUpdate struct {
@@ -24,6 +25,7 @@ type UserUpdate struct {
 	Gender      *Gender     `json:"gender"`
 	AccessType  *AccessType `json:"access_type"`
 	Avatar      *string     `json:"avatar"`
+	IsVerified  *bool       `json:"is_verified"`
 }
 type Gender string
 

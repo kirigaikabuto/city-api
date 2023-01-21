@@ -130,7 +130,7 @@ func run(c *cli.Context) error {
 	}
 	smsTwilioStore := sms_store.NewTwilioStore(common.TwilioConfig{
 		AccountSID:  "AC30f9614064e59aeff1890bd69cce5d7b",
-		AuthToken:   "3143c79dc22dae6900ebe93a40e1a7ce",
+		AuthToken:   "fb11e66cfbadafc8601a89a7b09bc08d",
 		PhoneNumber: "+19472033984",
 	})
 

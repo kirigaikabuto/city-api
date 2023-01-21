@@ -6,7 +6,9 @@ import (
 	sms_store "github.com/kirigaikabuto/city-api/sms-store"
 	"github.com/kirigaikabuto/city-api/users"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 type Service interface {
@@ -61,12 +63,21 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 		return nil, ErrNoGenderType
 	}
 	cmd.AccessType = users.AccessTypeUser
-	_, err := s.smsPostgresStore.Create(&sms_store.SmsCode{
+	user, err := s.userStore.Create(&cmd.User)
+	if err != nil {
+		return nil, err
+	}
+	rand.Seed(time.Now().UnixNano())
+	code, err := GenerateOTP(6)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.smsPostgresStore.Create(&sms_store.SmsCode{
 		Title: "sms messsage1",
 		Type:  "sms type",
-		From:  "me",
+		From:  "from account",
 		To:    cmd.PhoneNumber,
-		Body:  "message",
+		Body:  code,
 	})
 	if err != nil {
 		return nil, err
@@ -76,12 +87,15 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 		Type:  "sms type",
 		From:  "+19472033984",
 		To:    cmd.PhoneNumber,
-		Body:  "message",
+		Body:  code,
 	})
 	if err != nil {
 		return nil, err
 	}
-	user, err := s.userStore.Create(&cmd.User)
+	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
+		Code:   code,
+		UserId: user.Id,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -157,4 +171,20 @@ func (s *service) UploadAvatar(cmd *UploadAvatarCommand) (*UploadAvatarResponse,
 	}
 	response := &UploadAvatarResponse{FileUrl: fileResponse.FileUrl}
 	return response, nil
+}
+
+func GenerateOTP(length int) (string, error) {
+	otpChars := "1234567890"
+	buffer := make([]byte, length)
+	_, err := rand.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+
+	otpCharsLength := len(otpChars)
+	for i := 0; i < length; i++ {
+		buffer[i] = otpChars[int(buffer[i])%otpCharsLength]
+	}
+
+	return string(buffer), nil
 }

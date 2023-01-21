@@ -24,3 +24,8 @@ type CreateTokenCommand struct {
 	UserId   string
 	UserType string
 }
+
+type SaveCodeCommand struct {
+	Code   string
+	UserId string
+}

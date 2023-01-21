@@ -7,18 +7,24 @@ import (
 )
 
 type twilioStore struct {
-	client *twilio.RestClient
+	client      *twilio.RestClient
+	phoneNumber string
 }
 
 func NewTwilioStore(config common.TwilioConfig) Store {
-	client := twilio.NewRestClient()
-	return &twilioStore{client: client}
+	client := twilio.NewRestClientWithParams(twilio.ClientParams{
+		Username:   config.AccountSID,
+		Password:   config.AuthToken,
+		AccountSid: config.AccountSID,
+	})
+
+	return &twilioStore{client: client, phoneNumber: config.PhoneNumber}
 }
 
 func (t *twilioStore) Create(obj *SmsCode) (*SmsCode, error) {
 	params := &api.CreateMessageParams{}
 	params.SetBody(obj.Body)
-	params.SetFrom(obj.From)
+	params.SetFrom(t.phoneNumber)
 	params.SetTo(obj.To)
 	_, err := t.client.Api.CreateMessage(params)
 	if err != nil {

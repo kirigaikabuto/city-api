@@ -93,3 +93,19 @@ func (t *tokenStore) RemoveToken(id string) (int64, error) {
 	}
 	return deleted, nil
 }
+
+func (t *tokenStore) SaveCode(cmd *SaveCodeCommand) error {
+	err := t.redisClient.Set("code"+":"+cmd.Code, cmd.UserId, time.Minute*5).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *tokenStore) GetUserIdByCode(code string) (string, error) {
+	userId, err := t.redisClient.Get("code" + ":" + code).Result()
+	if err != nil {
+		return "", err
+	}
+	return userId, nil
+}
