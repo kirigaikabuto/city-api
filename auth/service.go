@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/mdw"
@@ -234,6 +235,7 @@ func GenerateOTP(length int) (string, error) {
 }
 
 func (s *service) SendSmsCode(data *SendSmsData) error {
+	fmt.Println(data.Body)
 	_, err := s.smsPostgresStore.Create(&sms_store.SmsCode{
 		Title: data.Title,
 		To:    data.PhoneNumber,
