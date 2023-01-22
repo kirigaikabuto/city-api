@@ -236,3 +236,16 @@ func (u *usersStore) Delete(id string) error {
 	}
 	return nil
 }
+
+func (u *usersStore) GetByPhoneNumber(phoneNumber string) (*User, error) {
+	user := &User{}
+	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
+		"from users where phone_number = $1 limit 1", phoneNumber).
+		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
+	if err == sql.ErrNoRows {
+		return nil, ErrUserNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

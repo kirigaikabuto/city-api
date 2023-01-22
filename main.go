@@ -211,6 +211,8 @@ func run(c *cli.Context) error {
 		authGroup.PUT("/profile", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeUpdateProfileEndpoint())
 		authGroup.PUT("/avatar", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeUploadAvatarEndpoint())
 		authGroup.GET("/verify", authHttpEndpoints.MakeVerifyCodeEndpoint())
+		authGroup.POST("/reset-password-request", authHttpEndpoints.MakeResetPasswordRequestEndpoint())
+		authGroup.PUT("/reset-password", authHttpEndpoints.MakeResetPasswordEndpoint())
 	}
 	feedbackGroup := r.Group("/feedback")
 	{

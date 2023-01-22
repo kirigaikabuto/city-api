@@ -1,5 +1,7 @@
 package mdw
 
+import "time"
+
 type Token struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
@@ -28,4 +30,5 @@ type CreateTokenCommand struct {
 type SaveCodeCommand struct {
 	Code   string
 	UserId string
+	Time   time.Duration
 }

@@ -95,7 +95,7 @@ func (t *tokenStore) RemoveToken(id string) (int64, error) {
 }
 
 func (t *tokenStore) SaveCode(cmd *SaveCodeCommand) error {
-	err := t.redisClient.Set("code"+":"+cmd.Code, cmd.UserId, time.Minute*5).Err()
+	err := t.redisClient.Set("code"+":"+cmd.Code, cmd.UserId, cmd.Time).Err()
 	if err != nil {
 		return err
 	}

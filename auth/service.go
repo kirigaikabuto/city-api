@@ -19,6 +19,8 @@ type Service interface {
 	UpdateProfile(cmd *UpdateProfileCommand) (*users.User, error)
 	UploadAvatar(cmd *UploadAvatarCommand) (*UploadAvatarResponse, error)
 	VerifyCode(cmd *VerifyCodeCommand) error
+	ResetPasswordRequest(cmd *ResetPasswordRequestCommand) error
+	ResetPassword(cmd *ResetPasswordCommand) error
 }
 
 type service struct {
@@ -77,22 +79,10 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = s.smsPostgresStore.Create(&sms_store.SmsCode{
-		Title: "sms messsage1",
-		Type:  "sms type",
-		From:  "from account",
-		To:    cmd.PhoneNumber,
-		Body:  code,
-	})
-	if err != nil {
-		return nil, err
-	}
-	_, err = s.smsTwilioStore.Create(&sms_store.SmsCode{
-		Title: "sms messsage1",
-		Type:  "sms type",
-		From:  "+19472033984",
-		To:    cmd.PhoneNumber,
-		Body:  code,
+	err = s.SendSmsCode(&SendSmsData{
+		PhoneNumber: cmd.PhoneNumber,
+		Title:       "Register template",
+		Body:        code,
 	})
 	if err != nil {
 		return nil, err
@@ -100,6 +90,7 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
 		Code:   code,
 		UserId: user.Id,
+		Time:   5 * time.Minute,
 	})
 	if err != nil {
 		return nil, err
@@ -193,6 +184,41 @@ func (s *service) VerifyCode(cmd *VerifyCodeCommand) error {
 	return nil
 }
 
+func (s *service) ResetPasswordRequest(cmd *ResetPasswordRequestCommand) error {
+	isPhone := false
+	var user *users.User
+	var err error
+	if cmd.Email != "" {
+		user = nil
+	} else if cmd.PhoneNumber != "" {
+		user, err = s.userStore.GetByPhoneNumber(cmd.PhoneNumber)
+		if err != nil {
+			return err
+		}
+		isPhone = true
+	}
+	code, err := GenerateOTP(6)
+	if err != nil {
+		return err
+	}
+	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
+		Code:   code,
+		UserId: user.Id,
+		Time:   10 * time.Minute,
+	})
+	if err != nil {
+		return err
+	}
+	if isPhone {
+		err = s.SendSmsCode(&SendSmsData{
+			PhoneNumber: cmd.PhoneNumber,
+			Title:       "reset password",
+			Body:        code,
+		})
+	}
+	return nil
+}
+
 func GenerateOTP(length int) (string, error) {
 	otpChars := "1234567890"
 	buffer := make([]byte, length)
@@ -205,4 +231,42 @@ func GenerateOTP(length int) (string, error) {
 		buffer[i] = otpChars[int(buffer[i])%otpCharsLength]
 	}
 	return string(buffer), nil
+}
+
+func (s *service) SendSmsCode(data *SendSmsData) error {
+	_, err := s.smsPostgresStore.Create(&sms_store.SmsCode{
+		Title: data.Title,
+		To:    data.PhoneNumber,
+		Body:  data.Body,
+	})
+	if err != nil {
+		return err
+	}
+	_, err = s.smsTwilioStore.Create(&sms_store.SmsCode{
+		Title: data.Title,
+		To:    data.PhoneNumber,
+		Body:  data.Body,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) ResetPassword(cmd *ResetPasswordCommand) error {
+	userId, err := s.tokenStore.GetUserIdByCode(cmd.Code)
+	if err != nil && err == redis.Nil {
+		return ErrInvalidCode
+	} else if err != nil {
+		return err
+	}
+	user, err := s.userStore.Get(userId)
+	if err != nil {
+		return err
+	}
+	_, err = s.UpdateProfile(&UpdateProfileCommand{users.UserUpdate{Id: user.Id, Password: &cmd.NewPassword}})
+	if err != nil {
+		return err
+	}
+	return nil
 }

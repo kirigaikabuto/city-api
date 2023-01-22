@@ -59,3 +59,27 @@ type VerifyCodeCommand struct {
 func (cmd *VerifyCodeCommand) Exec(svc interface{}) (interface{}, error) {
 	return nil, svc.(Service).VerifyCode(cmd)
 }
+
+type ResetPasswordRequestCommand struct {
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+func (cmd *ResetPasswordRequestCommand) Exec(svc interface{}) (interface{}, error) {
+	return nil, svc.(Service).ResetPasswordRequest(cmd)
+}
+
+type SendSmsData struct {
+	PhoneNumber string
+	Title       string
+	Body        string
+}
+
+type ResetPasswordCommand struct {
+	Code        string `json:"code"`
+	NewPassword string `json:"new_password"`
+}
+
+func (cmd *ResetPasswordCommand) Exec(svc interface{}) (interface{}, error) {
+	return nil, svc.(Service).ResetPassword(cmd)
+}

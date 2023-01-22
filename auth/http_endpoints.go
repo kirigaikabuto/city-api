@@ -15,6 +15,8 @@ type HttpEndpoints interface {
 	MakeUpdateProfileEndpoint() gin.HandlerFunc
 	MakeUploadAvatarEndpoint() gin.HandlerFunc
 	MakeVerifyCodeEndpoint() gin.HandlerFunc
+	MakeResetPasswordRequestEndpoint() gin.HandlerFunc
+	MakeResetPasswordEndpoint() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -146,6 +148,54 @@ func (h *httpEndpoints) MakeVerifyCodeEndpoint() gin.HandlerFunc {
 			return
 		}
 		cmd.Code = code
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeResetPasswordRequestEndpoint() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ResetPasswordRequestCommand{}
+		err := context.ShouldBindJSON(&cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		if cmd.Email == "" && cmd.PhoneNumber == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoPhoneNumberOrEmail))
+			return
+		}
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeResetPasswordEndpoint() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ResetPasswordCommand{}
+		code := context.Request.URL.Query().Get("code")
+		if code == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoCodeInQuery))
+			return
+		}
+		cmd.Code = code
+		err := context.ShouldBindJSON(&cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		if cmd.NewPassword == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoPasswordInRequest))
+			return
+		}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))

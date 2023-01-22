@@ -8,4 +8,5 @@ type UsersStore interface {
 	List() ([]User, error)
 	GetByUsernameAndPassword(username, password string) (*User, error)
 	GetByUsername(username string) (*User, error)
+	GetByPhoneNumber(phoneNumber string) (*User, error)
 }
