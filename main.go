@@ -161,7 +161,7 @@ func run(c *cli.Context) error {
 					return true
 				}
 			}
-			return false
+			return true
 		},
 		MaxAge: 72 * time.Hour,
 	}))
