@@ -44,6 +44,9 @@ var (
 	postgresPort            = 5432
 	postgresParams          = ""
 	port                    = ""
+	twilioSID               = ""
+	twilioToken             = ""
+	twilioNumber            = ""
 )
 
 func parseEnvFile() {
@@ -63,6 +66,9 @@ func parseEnvFile() {
 	s3region = os.Getenv("S3_REGION")
 	redisHost = os.Getenv("REDIS_HOST")
 	redisPort = os.Getenv("REDIS_PORT")
+	twilioSID = os.Getenv("TWILIO_SID")
+	twilioToken = os.Getenv("TWILIO_TOKEN")
+	twilioNumber = os.Getenv("TWILIO_NUMBER")
 }
 
 func run(c *cli.Context) error {
@@ -130,9 +136,9 @@ func run(c *cli.Context) error {
 		return err
 	}
 	smsTwilioStore := sms_store.NewTwilioStore(common.TwilioConfig{
-		AccountSID:  "AC30f9614064e59aeff1890bd69cce5d7b",
-		AuthToken:   "fb11e66cfbadafc8601a89a7b09bc08d",
-		PhoneNumber: "+19472033984",
+		AccountSID:  twilioSID,
+		AuthToken:   twilioToken,
+		PhoneNumber: twilioNumber,
 	})
 
 	r := gin.Default()
