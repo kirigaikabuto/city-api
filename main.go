@@ -147,7 +147,8 @@ func run(c *cli.Context) error {
 		"http://chistyi-gorod.kz",
 		"http://37.99.44.126",
 		"http://172.19.0.1",
-		"http://localhost:63342"}
+		"http://localhost:63342",
+		"*"}
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     allowOrigins,
 		AllowMethods:     []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
