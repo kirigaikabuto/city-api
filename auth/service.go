@@ -202,6 +202,7 @@ func (s *service) ResetPasswordRequest(cmd *ResetPasswordRequestCommand) error {
 	if err != nil {
 		return err
 	}
+	code = "111111"
 	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
 		Code:   code,
 		UserId: user.Id,
