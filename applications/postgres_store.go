@@ -285,3 +285,36 @@ func (a *applicationStore) RemoveApplication(id string) error {
 	}
 	return nil
 }
+
+func (a *applicationStore) ListByAddress(address string) ([]Application, error) {
+	var objects []Application
+	var values []interface{}
+	q := "select " +
+		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id " +
+		"from Applications where address like '%" + address + "%'"
+	rows, err := a.db.Query(q, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		obj := Application{}
+		appType := ""
+		appStatus := ""
+		err = rows.Scan(
+			&obj.Id, &obj.Address,
+			&appType, &obj.Message, &obj.FirstName,
+			&obj.LastName, &obj.Patronymic,
+			&obj.PhoneNumber, &obj.PhotoUrl,
+			&obj.VideoUrl, &obj.CreatedDate,
+			&obj.Longitude, &obj.Latitude, &appStatus, &obj.UserId)
+		if err != nil {
+			return nil, err
+		}
+		obj.CreatedDate = strings.Split(obj.CreatedDate, "T")[0]
+		obj.AppType = ToProblemType(appType)
+		obj.AppStatus = ToStatus(appStatus)
+		objects = append(objects, obj)
+	}
+	return objects, nil
+}

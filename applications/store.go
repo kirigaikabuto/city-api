@@ -8,4 +8,5 @@ type Store interface {
 	Update(model *ApplicationUpdate) (*Application, error)
 	ListApplicationsByUserId(userId string) ([]Application, error)
 	RemoveApplication(id string) error
+	ListByAddress(address string) ([]Application, error)
 }

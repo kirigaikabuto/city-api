@@ -26,6 +26,7 @@ type Service interface {
 	ListApplicationsByUserId(cmd *ListApplicationsByUserIdCommand) ([]Application, error)
 	UpdateApplication(cmd *UpdateApplicationCommand) (*Application, error)
 	RemoveApplication(cmd *RemoveApplicationCommand) error
+	ListByAddress(cmd *ListByAddressCommand) ([]Application, error)
 
 	SearchPlace(cmd *SearchPlaceCommand) ([]Place, error)
 }
@@ -215,4 +216,22 @@ func (s *service) UpdateApplication(cmd *UpdateApplicationCommand) (*Application
 
 func (s *service) RemoveApplication(cmd *RemoveApplicationCommand) error {
 	return s.appStore.RemoveApplication(cmd.Id)
+}
+
+func (s *service) ListByAddress(cmd *ListByAddressCommand) ([]Application, error) {
+	applications := []Application{}
+	tempApplications, err := s.appStore.ListByAddress(cmd.Address)
+	if err != nil {
+		return nil, err
+	}
+	if cmd.UserId != "" {
+		for _, v := range tempApplications {
+			if v.UserId == cmd.UserId {
+				applications = append(applications, v)
+			}
+		}
+	} else {
+		applications = tempApplications
+	}
+	return applications, nil
 }

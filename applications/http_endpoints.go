@@ -21,6 +21,8 @@ type HttpEndpoints interface {
 	MakeAuthorizedUserListApplications() gin.HandlerFunc
 	MakeUpdateApplication() gin.HandlerFunc
 	MakeRemoveApplication() gin.HandlerFunc
+	MakeListByAddressWithAuth() gin.HandlerFunc
+	MakeListByAddress() gin.HandlerFunc
 
 	MakeSearchPlace() gin.HandlerFunc
 }
@@ -262,6 +264,48 @@ func (h *httpEndpoints) MakeRemoveApplication() gin.HandlerFunc {
 			return
 		}
 		respondJSON(context.Writer, http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeListByAddressWithAuth() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ListByAddressCommand{}
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		address := context.Request.URL.Query().Get("address")
+		if address == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoAddress))
+			return
+		}
+		cmd.UserId = userId.(string)
+		cmd.Address = address
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeListByAddress() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ListByAddressCommand{}
+		address := context.Request.URL.Query().Get("address")
+		if address == "" {
+			context.AbortWithStatusJSON(http.StatusBadRequest, setdata_common.ErrToHttpResponse(ErrNoAddress))
+			return
+		}
+		cmd.Address = address
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusCreated, resp)
 	}
 }
 

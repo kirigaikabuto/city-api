@@ -135,3 +135,12 @@ type RemoveApplicationCommand struct {
 func (cmd *RemoveApplicationCommand) Exec(svc interface{}) (interface{}, error) {
 	return nil, svc.(Service).RemoveApplication(cmd)
 }
+
+type ListByAddressCommand struct {
+	Address string `json:"address"`
+	UserId  string `json:"user_id"`
+}
+
+func (cmd *ListByAddressCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).ListByAddress(cmd)
+}

@@ -181,8 +181,8 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	commentsService := comments.NewService(commentsPostgreStore, eventsPostgreStore, applicationPostgreStore)
-	commentsHttpEnpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
+	commentsService := comments.NewService(commentsPostgreStore, eventsPostgreStore, applicationPostgreStore, usersPostgreStore)
+	commentsHttpEndpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
 
 	//news
 	newsPostgreStore, err := news.NewPostgresStore(cfg)
@@ -212,6 +212,8 @@ func run(c *cli.Context) error {
 		appGroup.GET("/my", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeAuthorizedUserListApplications())
 		appGroup.PUT("/", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeUpdateApplication())
 		appGroup.DELETE("/", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeRemoveApplication())
+		appGroup.GET("/list/address-auth", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeListByAddressWithAuth())
+		appGroup.GET("/list/address", applicationHttpEndpoints.MakeListByAddress())
 	}
 	eventGroup := r.Group("/event")
 	{
@@ -239,10 +241,10 @@ func run(c *cli.Context) error {
 	}
 	commentsGroup := r.Group("/comment")
 	{
-		commentsGroup.POST("/", mdwEndpoint.MakeMiddleware(), commentsHttpEnpoints.MakeCreateEndpoint())
-		commentsGroup.GET("/", mdwEndpoint.MakeMiddleware(), commentsHttpEnpoints.MakeListEndpoint())
-		commentsGroup.GET("/obj", commentsHttpEnpoints.MakeListByObjTypeEndpoint())
-		commentsGroup.GET("/objId", commentsHttpEnpoints.MakeListByObjectId())
+		commentsGroup.POST("/", mdwEndpoint.MakeMiddleware(), commentsHttpEndpoints.MakeCreateEndpoint())
+		commentsGroup.GET("/", mdwEndpoint.MakeMiddleware(), commentsHttpEndpoints.MakeListEndpoint())
+		commentsGroup.GET("/obj", commentsHttpEndpoints.MakeListByObjTypeEndpoint())
+		commentsGroup.GET("/objId", commentsHttpEndpoints.MakeListByObjectId())
 	}
 	newsGroup := r.Group("/news")
 	{
