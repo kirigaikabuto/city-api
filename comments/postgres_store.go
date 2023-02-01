@@ -119,3 +119,27 @@ func (u *usersStore) GetByObjType(objType ObjType) ([]Comment, error) {
 	}
 	return objects, nil
 }
+
+func (u *usersStore) GetByObjId(objId string) ([]Comment, error) {
+	var objects []Comment
+	var values []interface{}
+	q := "select " +
+		"id, message, user_id, obj_id, obj_type, created_date " +
+		"from comments where obj_id = $1"
+	values = append(values, objId)
+	rows, err := u.db.Query(q, values...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		obj := Comment{}
+		err = rows.Scan(
+			&obj.Id, &obj.Message, &obj.UserId, &obj.ObjId, &obj.ObjType, &obj.CreatedDate)
+		if err != nil {
+			return nil, err
+		}
+		objects = append(objects, obj)
+	}
+	return objects, nil
+}

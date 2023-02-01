@@ -25,3 +25,11 @@ type ListByObjTypeCommand struct {
 func (cmd *ListByObjTypeCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).ListByObjType(cmd)
 }
+
+type ListByObjectIdCommand struct {
+	ObjectId string `json:"object_id"`
+}
+
+func (cmd *ListByObjectIdCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).ListByObjectId(cmd)
+}

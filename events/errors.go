@@ -10,4 +10,5 @@ var (
 	ErrNoUserIdInToken    = com.NewMiddleError(errors.New("no user id in token"), 500, 52)
 	ErrNothingToUpdate    = com.NewMiddleError(errors.New("nothing to update"), 500, 4)
 	ErrEventNotFound      = com.NewMiddleError(errors.New("event not found"), 500, 5)
+	ErrNoEventId          = com.NewMiddleError(errors.New("no event id"), 500, 7)
 )

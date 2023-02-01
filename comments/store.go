@@ -5,4 +5,5 @@ type Store interface {
 	GetById(id string) (*Comment, error)
 	List() ([]Comment, error)
 	GetByObjType(objType ObjType) ([]Comment, error)
+	GetByObjId(objID string) ([]Comment, error)
 }

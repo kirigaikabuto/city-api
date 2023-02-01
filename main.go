@@ -181,7 +181,7 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	commentsService := comments.NewService(commentsPostgreStore)
+	commentsService := comments.NewService(commentsPostgreStore, eventsPostgreStore, applicationPostgreStore)
 	commentsHttpEnpoints := comments.NewHttpEndpoints(setdata_common.NewCommandHandler(commentsService))
 
 	//news
@@ -219,6 +219,7 @@ func run(c *cli.Context) error {
 		eventGroup.GET("/", eventsHttpEndpoints.MakeListEvent())
 		eventGroup.GET("/my", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeListEventByUserId())
 		eventGroup.PUT("/document", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeUploadDocument())
+		eventGroup.GET("/id", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeGetEventById())
 	}
 	authGroup := r.Group("/auth")
 	{
@@ -241,6 +242,7 @@ func run(c *cli.Context) error {
 		commentsGroup.POST("/", mdwEndpoint.MakeMiddleware(), commentsHttpEnpoints.MakeCreateEndpoint())
 		commentsGroup.GET("/", mdwEndpoint.MakeMiddleware(), commentsHttpEnpoints.MakeListEndpoint())
 		commentsGroup.GET("/obj", commentsHttpEnpoints.MakeListByObjTypeEndpoint())
+		commentsGroup.GET("/objId", commentsHttpEnpoints.MakeListByObjectId())
 	}
 	newsGroup := r.Group("/news")
 	{

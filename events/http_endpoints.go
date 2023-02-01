@@ -14,6 +14,7 @@ type HttpEndpoints interface {
 	MakeListEvent() gin.HandlerFunc
 	MakeListEventByUserId() gin.HandlerFunc
 	MakeUploadDocument() gin.HandlerFunc
+	MakeGetEventById() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -111,6 +112,24 @@ func (h *httpEndpoints) MakeUploadDocument() gin.HandlerFunc {
 			return
 		}
 		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeGetEventById() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &GetEventByIdCommand{}
+		eventId := context.Request.URL.Query().Get("id")
+		if eventId == "" {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoEventId))
+			return
+		}
+		cmd.Id = eventId
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		respondJSON(context.Writer, http.StatusOK, resp)
 	}
 }
 

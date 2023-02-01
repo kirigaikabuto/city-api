@@ -39,3 +39,11 @@ func (cmd *UploadDocumentCommand) Exec(svc interface{}) (interface{}, error) {
 type UploadDocumentResponse struct {
 	FileUrl string `json:"file_url"`
 }
+
+type GetEventByIdCommand struct {
+	Id string `json:"id"`
+}
+
+func (cmd *GetEventByIdCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).GetEventById(cmd)
+}

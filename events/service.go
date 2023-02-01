@@ -10,6 +10,7 @@ type Service interface {
 	List(cmd *ListEventCommand) ([]Event, error)
 	ListEventByUserId(cmd *ListEventByUserIdCommand) ([]Event, error)
 	UploadDocument(cmd *UploadDocumentCommand) (*UploadDocumentResponse, error)
+	GetEventById(cmd *GetEventByIdCommand) (*Event, error)
 }
 
 type service struct {
@@ -49,4 +50,12 @@ func (s *service) UploadDocument(cmd *UploadDocumentCommand) (*UploadDocumentRes
 	}
 	response := &UploadDocumentResponse{FileUrl: fileResponse.FileUrl}
 	return response, nil
+}
+
+func (s *service) GetEventById(cmd *GetEventByIdCommand) (*Event, error) {
+	event, err := s.eventStore.GetById(cmd.Id)
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
 }

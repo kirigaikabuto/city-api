@@ -10,6 +10,7 @@ type HttpEndpoints interface {
 	MakeCreateEndpoint() gin.HandlerFunc
 	MakeListEndpoint() gin.HandlerFunc
 	MakeListByObjTypeEndpoint() gin.HandlerFunc
+	MakeListByObjectId() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -59,6 +60,23 @@ func (h *httpEndpoints) MakeListByObjTypeEndpoint() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		cmd := &ListByObjTypeCommand{}
 		cmd.ObjType = context.Request.URL.Query().Get("type")
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeListByObjectId() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &ListByObjectIdCommand{}
+		cmd.ObjectId = context.Request.URL.Query().Get("id")
+		if cmd.ObjectId == "" {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoObjectID))
+			return
+		}
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
