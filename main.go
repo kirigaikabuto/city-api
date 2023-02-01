@@ -11,6 +11,7 @@ import (
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/events"
 	"github.com/kirigaikabuto/city-api/feedback"
+	file_storage "github.com/kirigaikabuto/city-api/file-storage"
 	"github.com/kirigaikabuto/city-api/mdw"
 	"github.com/kirigaikabuto/city-api/news"
 	sms_store "github.com/kirigaikabuto/city-api/sms-store"
@@ -117,18 +118,22 @@ func run(c *cli.Context) error {
 		AccessType:  "admin",
 		IsVerified:  true,
 	})
-	applicationPostgreStore, err := applications.NewPostgresApplicationStore(cfg)
+	fileStoragePostgresStore, err := file_storage.NewPostgresStore(cfg)
 	if err != nil {
 		return err
 	}
-	applicationService := applications.NewApplicationService(applicationPostgreStore, s3Uploader, usersPostgreStore)
+	applicationPostgreStore, err := applications.NewPostgresApplicationStore(cfg, fileStoragePostgresStore)
+	if err != nil {
+		return err
+	}
+	applicationService := applications.NewApplicationService(applicationPostgreStore, s3Uploader, usersPostgreStore, fileStoragePostgresStore)
 	applicationHttpEndpoints := applications.NewHttpEndpoints(setdata_common.NewCommandHandler(applicationService))
 	//events
-	eventsPostgreStore, err := events.NewPostgresStore(cfg)
+	eventsPostgreStore, err := events.NewPostgresStore(cfg, fileStoragePostgresStore)
 	if err != nil {
 		return err
 	}
-	eventService := events.NewService(eventsPostgreStore, s3Uploader)
+	eventService := events.NewService(eventsPostgreStore, s3Uploader, fileStoragePostgresStore)
 	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
 	//sms
 	smsPostgreStore, err := sms_store.NewPostgresStore(cfg)
@@ -214,6 +219,7 @@ func run(c *cli.Context) error {
 		appGroup.DELETE("/", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeRemoveApplication())
 		appGroup.GET("/list/address-auth", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeListByAddressWithAuth())
 		appGroup.GET("/list/address", applicationHttpEndpoints.MakeListByAddress())
+		appGroup.PUT("/multiple/file", mdwEndpoint.MakeMiddleware(), applicationHttpEndpoints.MakeUploadMultipleFiles())
 	}
 	eventGroup := r.Group("/event")
 	{
@@ -222,6 +228,7 @@ func run(c *cli.Context) error {
 		eventGroup.GET("/my", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeListEventByUserId())
 		eventGroup.PUT("/document", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeUploadDocument())
 		eventGroup.GET("/id", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeGetEventById())
+		eventGroup.PUT("/multiple/file", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeUploadMultipleFiles())
 	}
 	authGroup := r.Group("/auth")
 	{

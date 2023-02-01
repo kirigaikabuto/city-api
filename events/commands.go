@@ -47,3 +47,17 @@ type GetEventByIdCommand struct {
 func (cmd *GetEventByIdCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).GetEventById(cmd)
 }
+
+type FileObj struct {
+	File        *bytes.Buffer
+	ContentType string
+}
+
+type UploadMultipleFilesCommand struct {
+	Id    string `json:"id"`
+	Files []FileObj
+}
+
+func (cmd *UploadMultipleFilesCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).UploadMultipleFiles(cmd)
+}

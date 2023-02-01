@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/google/uuid"
 	"github.com/kirigaikabuto/city-api/common"
+	file_storage "github.com/kirigaikabuto/city-api/file-storage"
 	"log"
 	"strconv"
 	"strings"
@@ -27,10 +28,11 @@ var queries = []string{
 }
 
 type store struct {
-	db *sql.DB
+	db               *sql.DB
+	fileStorageStore file_storage.Store
 }
 
-func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
+func NewPostgresStore(cfg common.PostgresConfig, fileStorageStore file_storage.Store) (Store, error) {
 	db, err := common.GetDbConn(common.GetConnString(cfg))
 	if err != nil {
 		return nil, err
@@ -42,7 +44,7 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 		}
 	}
 	db.SetMaxOpenConns(10)
-	s := &store{db: db}
+	s := &store{db: db, fileStorageStore: fileStorageStore}
 	return s, nil
 }
 
@@ -64,6 +66,13 @@ func (s *store) Create(model *Event) (*Event, error) {
 	}
 	if n <= 0 {
 		return nil, ErrCreateEventUnknown
+	}
+	files, err := s.fileStorageStore.ListByObjectId(model.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		model.Files = append(model.Files, file.FileUrl)
 	}
 	return model, nil
 }
@@ -93,6 +102,15 @@ func (s *store) List() ([]Event, error) {
 		obj.Date = strings.Split(obj.Date, "T")[0]
 		obj.CreatedDate = strings.Split(obj.CreatedDate, "T")[0]
 		objects = append(objects, obj)
+	}
+	for i := range objects {
+		files, err := s.fileStorageStore.ListByObjectId(objects[i].Id)
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range files {
+			objects[i].Files = append(objects[i].Files, file.FileUrl)
+		}
 	}
 	return objects, nil
 }
@@ -124,6 +142,15 @@ func (s *store) ListByUserId(userId string) ([]Event, error) {
 		obj.CreatedDate = strings.Split(obj.CreatedDate, "T")[0]
 		objects = append(objects, obj)
 	}
+	for i := range objects {
+		files, err := s.fileStorageStore.ListByObjectId(objects[i].Id)
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range files {
+			objects[i].Files = append(objects[i].Files, file.FileUrl)
+		}
+	}
 	return objects, nil
 }
 
@@ -140,6 +167,13 @@ func (s *store) GetById(id string) (*Event, error) {
 		return nil, ErrEventNotFound
 	} else if err != nil {
 		return nil, err
+	}
+	files, err := s.fileStorageStore.ListByObjectId(obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		obj.Files = append(obj.Files, file.FileUrl)
 	}
 	return obj, nil
 }

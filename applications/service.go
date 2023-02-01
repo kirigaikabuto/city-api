@@ -3,7 +3,9 @@ package applications
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/kirigaikabuto/city-api/common"
+	file_storage "github.com/kirigaikabuto/city-api/file-storage"
 	"github.com/kirigaikabuto/city-api/users"
 	"github.com/spf13/viper"
 	"io/ioutil"
@@ -27,18 +29,20 @@ type Service interface {
 	UpdateApplication(cmd *UpdateApplicationCommand) (*Application, error)
 	RemoveApplication(cmd *RemoveApplicationCommand) error
 	ListByAddress(cmd *ListByAddressCommand) ([]Application, error)
+	UploadMultipleFiles(cmd *UploadMultipleFilesCommand) (*Application, error)
 
 	SearchPlace(cmd *SearchPlaceCommand) ([]Place, error)
 }
 
 type service struct {
-	appStore  Store
-	userStore users.UsersStore
-	s3        common.S3Uploader
+	appStore   Store
+	filesStore file_storage.Store
+	userStore  users.UsersStore
+	s3         common.S3Uploader
 }
 
-func NewApplicationService(appStore Store, s3 common.S3Uploader, usersStore users.UsersStore) Service {
-	return &service{appStore: appStore, s3: s3, userStore: usersStore}
+func NewApplicationService(appStore Store, s3 common.S3Uploader, usersStore users.UsersStore, fileStore file_storage.Store) Service {
+	return &service{appStore: appStore, s3: s3, userStore: usersStore, filesStore: fileStore}
 }
 
 func (s *service) CreateApplication(cmd *CreateApplicationCommand) (*Application, error) {
@@ -234,4 +238,33 @@ func (s *service) ListByAddress(cmd *ListByAddressCommand) ([]Application, error
 		applications = tempApplications
 	}
 	return applications, nil
+}
+
+func (s *service) UploadMultipleFiles(cmd *UploadMultipleFilesCommand) (*Application, error) {
+	_, err := s.appStore.GetById(cmd.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, obj := range cmd.Files {
+		if obj.ContentType == "" {
+			return nil, ErrCannotDetectContentType
+		}
+		if !common.IsImage(obj.ContentType) && !common.IsVideo(obj.ContentType) {
+			return nil, ErrFileShouldBeOnlyImageOrVideo
+		}
+		fileType := strings.Split(obj.ContentType, "/")[1]
+		fileResponse, err := s.s3.UploadFile(obj.File.Bytes(), cmd.Id+uuid.New().String(), fileType, obj.ContentType)
+		if err != nil {
+			return nil, err
+		}
+		_, err = s.filesStore.Create(&file_storage.FileStorage{
+			ObjectId:   cmd.Id,
+			ObjectType: file_storage.ApplicationObjType,
+			FileUrl:    fileResponse.FileUrl,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return s.GetApplicationById(&GetApplicationByIdCommand{Id: cmd.Id})
 }

@@ -3,6 +3,7 @@ package events
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	setdata_common "github.com/kirigaikabuto/setdata-common"
 	"io"
@@ -15,6 +16,7 @@ type HttpEndpoints interface {
 	MakeListEventByUserId() gin.HandlerFunc
 	MakeUploadDocument() gin.HandlerFunc
 	MakeGetEventById() gin.HandlerFunc
+	MakeUploadMultipleFiles() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -124,6 +126,56 @@ func (h *httpEndpoints) MakeGetEventById() gin.HandlerFunc {
 			return
 		}
 		cmd.Id = eventId
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		respondJSON(context.Writer, http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeUploadMultipleFiles() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &UploadMultipleFilesCommand{}
+		id := context.Request.URL.Query().Get("id")
+		if id == "" {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoEventId))
+			return
+		}
+		cmd.Id = id
+
+		form, err := context.MultipartForm()
+		if err != nil {
+			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		formFilesHeader := form.File["files"]
+		files := []FileObj{}
+		fmt.Println(formFilesHeader)
+		for _, fileHeader := range formFilesHeader {
+			buf := bytes.NewBuffer(nil)
+			file, err := fileHeader.Open()
+			if err != nil {
+				respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+				return
+			}
+			_, err = io.Copy(buf, file)
+			if err != nil {
+				respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+				return
+			}
+			err = file.Close()
+			if err != nil {
+				respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+				return
+			}
+			files = append(files, FileObj{
+				File:        buf,
+				ContentType: http.DetectContentType(buf.Bytes()),
+			})
+		}
+		cmd.Files = files
 		resp, err := h.ch.ExecCommand(cmd)
 		if err != nil {
 			respondJSON(context.Writer, http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))

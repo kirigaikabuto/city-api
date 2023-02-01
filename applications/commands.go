@@ -144,3 +144,17 @@ type ListByAddressCommand struct {
 func (cmd *ListByAddressCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).ListByAddress(cmd)
 }
+
+type FileObj struct {
+	File        *bytes.Buffer
+	ContentType string
+}
+
+type UploadMultipleFilesCommand struct {
+	Id    string `json:"id"`
+	Files []FileObj
+}
+
+func (cmd *UploadMultipleFilesCommand) Exec(svc interface{}) (interface{}, error) {
+	return svc.(Service).UploadMultipleFiles(cmd)
+}

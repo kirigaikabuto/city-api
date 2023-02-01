@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/google/uuid"
 	"github.com/kirigaikabuto/city-api/common"
+	file_storage "github.com/kirigaikabuto/city-api/file-storage"
 	_ "github.com/lib/pq"
 	"log"
 	"strconv"
@@ -32,10 +33,11 @@ var applicationQueries = []string{
 }
 
 type applicationStore struct {
-	db *sql.DB
+	db               *sql.DB
+	fileStorageStore file_storage.Store
 }
 
-func NewPostgresApplicationStore(cfg common.PostgresConfig) (Store, error) {
+func NewPostgresApplicationStore(cfg common.PostgresConfig, fileStorageStore file_storage.Store) (Store, error) {
 	db, err := common.GetDbConn(common.GetConnString(cfg))
 	if err != nil {
 		return nil, err
@@ -47,7 +49,7 @@ func NewPostgresApplicationStore(cfg common.PostgresConfig) (Store, error) {
 		}
 	}
 	db.SetMaxOpenConns(10)
-	store := &applicationStore{db: db}
+	store := &applicationStore{db: db, fileStorageStore: fileStorageStore}
 	return store, nil
 }
 
@@ -70,6 +72,13 @@ func (a *applicationStore) Create(model *Application) (*Application, error) {
 	}
 	if n <= 0 {
 		return nil, ErrCreateApplicationUnknown
+	}
+	files, err := a.fileStorageStore.ListByObjectId(model.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		model.Files = append(model.Files, file.FileUrl)
 	}
 	return model, nil
 }
@@ -104,6 +113,15 @@ func (a *applicationStore) List() ([]Application, error) {
 		obj.AppStatus = ToStatus(appStatus)
 		objects = append(objects, obj)
 	}
+	for i := range objects {
+		files, err := a.fileStorageStore.ListByObjectId(objects[i].Id)
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range files {
+			objects[i].Files = append(objects[i].Files, file.FileUrl)
+		}
+	}
 	return objects, nil
 }
 
@@ -127,6 +145,13 @@ func (a *applicationStore) GetById(id string) (*Application, error) {
 	}
 	obj.AppType = ToProblemType(appType)
 	obj.AppStatus = ToStatus(appStatus)
+	files, err := a.fileStorageStore.ListByObjectId(obj.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range files {
+		obj.Files = append(obj.Files, file.FileUrl)
+	}
 	return obj, nil
 }
 
@@ -160,6 +185,15 @@ func (a *applicationStore) GetByProblemType(problemType ProblemType) ([]Applicat
 		obj.AppType = ToProblemType(appType)
 		obj.AppStatus = ToStatus(appStatus)
 		objects = append(objects, obj)
+	}
+	for i := range objects {
+		files, err := a.fileStorageStore.ListByObjectId(objects[i].Id)
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range files {
+			objects[i].Files = append(objects[i].Files, file.FileUrl)
+		}
 	}
 	return objects, nil
 }
@@ -275,6 +309,15 @@ func (a *applicationStore) ListApplicationsByUserId(userId string) ([]Applicatio
 		obj.AppStatus = ToStatus(appStatus)
 		objects = append(objects, obj)
 	}
+	for i := range objects {
+		files, err := a.fileStorageStore.ListByObjectId(objects[i].Id)
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range files {
+			objects[i].Files = append(objects[i].Files, file.FileUrl)
+		}
+	}
 	return objects, nil
 }
 
@@ -315,6 +358,15 @@ func (a *applicationStore) ListByAddress(address string) ([]Application, error) 
 		obj.AppType = ToProblemType(appType)
 		obj.AppStatus = ToStatus(appStatus)
 		objects = append(objects, obj)
+	}
+	for i := range objects {
+		files, err := a.fileStorageStore.ListByObjectId(objects[i].Id)
+		if err != nil {
+			return nil, err
+		}
+		for _, file := range files {
+			objects[i].Files = append(objects[i].Files, file.FileUrl)
+		}
 	}
 	return objects, nil
 }

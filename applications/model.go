@@ -16,6 +16,7 @@ type Application struct {
 	Latitude    float64     `json:"latitude"`
 	UserId      string      `json:"user_id"`
 	CreatedDate string      `json:"created_date"`
+	Files       []string    `json:"files"`
 }
 
 type ApplicationUpdate struct {
