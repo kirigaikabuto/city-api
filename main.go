@@ -240,6 +240,7 @@ func run(c *cli.Context) error {
 		authGroup.GET("/verify", authHttpEndpoints.MakeVerifyCodeEndpoint())
 		authGroup.PUT("/reset-password-request", authHttpEndpoints.MakeResetPasswordRequestEndpoint())
 		authGroup.PUT("/reset-password", authHttpEndpoints.MakeResetPasswordEndpoint())
+		authGroup.DELETE("/remove", mdwEndpoint.MakeMiddleware(), authHttpEndpoints.MakeRemoveAccount())
 	}
 	feedbackGroup := r.Group("/feedback")
 	{

@@ -17,4 +17,5 @@ var (
 	ErrUserIsNotVerified            = com.NewMiddleError(errors.New("user is not verified"), 400, 208)
 	ErrNoPhoneNumberOrEmail         = com.NewMiddleError(errors.New("no phone number or email"), 400, 209)
 	ErrNoPasswordInRequest          = com.NewMiddleError(errors.New("no password in request"), 400, 210)
+	ErrAdminTypeDelete              = com.NewMiddleError(errors.New("access type admin can not be deleted"), 400, 211)
 )

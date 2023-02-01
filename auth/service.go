@@ -22,6 +22,7 @@ type Service interface {
 	VerifyCode(cmd *VerifyCodeCommand) error
 	ResetPasswordRequest(cmd *ResetPasswordRequestCommand) error
 	ResetPassword(cmd *ResetPasswordCommand) error
+	RemoveAccount(cmd *RemoveAccountCommand) error
 }
 
 type service struct {
@@ -269,6 +270,21 @@ func (s *service) ResetPassword(cmd *ResetPasswordCommand) error {
 		return err
 	}
 	_, err = s.UpdateProfile(&UpdateProfileCommand{users.UserUpdate{Id: user.Id, Password: &cmd.NewPassword}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *service) RemoveAccount(cmd *RemoveAccountCommand) error {
+	user, err := s.userStore.Get(cmd.UserId)
+	if err != nil {
+		return nil
+	}
+	if user.AccessType == users.AccessTypeAdmin {
+		return ErrAdminTypeDelete
+	}
+	err = s.userStore.Delete(cmd.UserId)
 	if err != nil {
 		return err
 	}

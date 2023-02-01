@@ -83,3 +83,11 @@ type ResetPasswordCommand struct {
 func (cmd *ResetPasswordCommand) Exec(svc interface{}) (interface{}, error) {
 	return nil, svc.(Service).ResetPassword(cmd)
 }
+
+type RemoveAccountCommand struct {
+	UserId string `json:"user_id"`
+}
+
+func (cmd *RemoveAccountCommand) Exec(svc interface{}) (interface{}, error) {
+	return nil, svc.(Service).RemoveAccount(cmd)
+}

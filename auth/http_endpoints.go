@@ -17,6 +17,7 @@ type HttpEndpoints interface {
 	MakeVerifyCodeEndpoint() gin.HandlerFunc
 	MakeResetPasswordRequestEndpoint() gin.HandlerFunc
 	MakeResetPasswordEndpoint() gin.HandlerFunc
+	MakeRemoveAccount() gin.HandlerFunc
 }
 
 type httpEndpoints struct {
@@ -202,6 +203,24 @@ func (h *httpEndpoints) MakeResetPasswordEndpoint() gin.HandlerFunc {
 			return
 		}
 		context.JSON(http.StatusOK, resp)
+	}
+}
+
+func (h *httpEndpoints) MakeRemoveAccount() gin.HandlerFunc {
+	return func(context *gin.Context) {
+		cmd := &RemoveAccountCommand{}
+		userId, ok := context.Get("user_id")
+		if !ok {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(ErrNoUserIdInToken))
+			return
+		}
+		cmd.UserId = userId.(string)
+		resp, err := h.ch.ExecCommand(cmd)
+		if err != nil {
+			context.AbortWithStatusJSON(http.StatusInternalServerError, setdata_common.ErrToHttpResponse(err))
+			return
+		}
+		context.JSON(http.StatusNoContent, resp)
 	}
 }
 
