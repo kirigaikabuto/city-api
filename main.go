@@ -133,7 +133,7 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	eventService := events.NewService(eventsPostgreStore, s3Uploader, fileStoragePostgresStore)
+	eventService := events.NewService(eventsPostgreStore, s3Uploader, fileStoragePostgresStore, usersPostgreStore)
 	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
 	//sms
 	smsPostgreStore, err := sms_store.NewPostgresStore(cfg)
@@ -227,7 +227,7 @@ func run(c *cli.Context) error {
 		eventGroup.GET("/", eventsHttpEndpoints.MakeListEvent())
 		eventGroup.GET("/my", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeListEventByUserId())
 		eventGroup.PUT("/document", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeUploadDocument())
-		eventGroup.GET("/id", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeGetEventById())
+		eventGroup.GET("/id", eventsHttpEndpoints.MakeGetEventById())
 		eventGroup.PUT("/multiple/file", mdwEndpoint.MakeMiddleware(), eventsHttpEndpoints.MakeUploadMultipleFiles())
 	}
 	authGroup := r.Group("/auth")

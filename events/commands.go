@@ -48,6 +48,12 @@ func (cmd *GetEventByIdCommand) Exec(svc interface{}) (interface{}, error) {
 	return svc.(Service).GetEventById(cmd)
 }
 
+type GetEventByIdResponse struct {
+	Event
+	Username string `json:"username"`
+	PhotoUrl string `json:"photo_url"`
+}
+
 type FileObj struct {
 	File        *bytes.Buffer
 	ContentType string
