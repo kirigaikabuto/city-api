@@ -18,4 +18,5 @@ var (
 	ErrNoPhoneNumberOrEmail         = com.NewMiddleError(errors.New("no phone number or email"), 400, 209)
 	ErrNoPasswordInRequest          = com.NewMiddleError(errors.New("no password in request"), 400, 210)
 	ErrAdminTypeDelete              = com.NewMiddleError(errors.New("access type admin can not be deleted"), 400, 211)
+	ErrNotValidPhoneNumber          = com.NewMiddleError(errors.New("not valid phone number"), 500, 212)
 )
