@@ -79,9 +79,6 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 		Title:       "Register template",
 		Body:        code,
 	})
-	if err != nil {
-		return nil, err
-	}
 	user, err := s.userStore.Create(&cmd.User)
 	if err != nil {
 		return nil, err
@@ -91,22 +88,12 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 		UserId: user.Id,
 		Time:   5 * time.Minute,
 	})
-	//if strings.Contains(err.Error(), "is not a valid phone number") {
-	//	return nil, ErrNotValidPhoneNumber
-	//} else if err != nil {
-	//	return nil, err
-	//}
 	code = "111111"
 	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
 		Code:   code,
 		UserId: user.Id,
 		Time:   5 * time.Minute,
 	})
-	//if strings.Contains(err.Error(), "is not a valid phone number") {
-	//	return nil, ErrNotValidPhoneNumber
-	//} else if err != nil {
-	//	return nil, err
-	//}
 	return user, nil
 }
 
