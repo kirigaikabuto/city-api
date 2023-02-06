@@ -68,9 +68,6 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	if cmd.Username == "" || cmd.Password == "" {
 		return nil, ErrPleaseFillUsernamePassword
 	}
-	if !users.IsGenderExist(cmd.Gender.ToString()) {
-		return nil, ErrNoGenderType
-	}
 	cmd.AccessType = users.AccessTypeUser
 	user, err := s.userStore.Create(&cmd.User)
 	if err != nil {
