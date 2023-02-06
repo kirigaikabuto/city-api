@@ -81,7 +81,6 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	code = "111111"
 	err = s.SendSmsCode(&SendSmsData{
 		PhoneNumber: cmd.PhoneNumber,
 		Title:       "Register template",
@@ -90,6 +89,12 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
+		Code:   code,
+		UserId: user.Id,
+		Time:   5 * time.Minute,
+	})
+	code = "111111"
 	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
 		Code:   code,
 		UserId: user.Id,
