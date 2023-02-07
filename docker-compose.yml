@@ -50,8 +50,15 @@ services:
       TWILIO_NUMBER: ${TWILIO_NUMBER}
     container_name: my-city-api
   backend-django:
+    depends_on:
+      - redis
+      - database
     build: ../clear-city-django-api
-    command: python manage.py runserver 0.0.0.0:$DJANGO_PORT
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py create_admin &&
+             python manage.py runserver 0.0.0.0:$DJANGO_PORT"
+
     volumes:
       - ../clear-city-django-api/:/usr/src/app/
     ports:
@@ -60,21 +67,30 @@ services:
       DJANGO_PORT: ${DJANGO_PORT}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+      POSTGRES_DB: ${POSTGRES_DBNAME}
+      POSTGRES_PARAM: ${POSTGRES_PARAM}
+      POSTGRES_USER: ${POSTGRES_USER}
     container_name: backend-django-api
-  proxy:
-    build: proxy
-    ports:
-      - "80:80"
-    depends_on:
-      - front
-    environment:
-      PORT: ${PORT}
-  front:
-    build: ../clear-city
-    ports:
-      - "8080:8080"
-    depends_on:
-      - backend
+#  proxy:
+#    build: proxy
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - front
+#    environment:
+#      PORT: ${PORT}
+#  front:
+#    build: ../clear-city
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - backend
 volumes:
   database_data:
     driver: local
