@@ -26,6 +26,7 @@ services:
     depends_on:
       - redis
       - database
+      - backend-django
     ports:
       - ${PORT}:${PORT}
     environment:
@@ -48,6 +49,18 @@ services:
       TWILIO_TOKEN: ${TWILIO_TOKEN}
       TWILIO_NUMBER: ${TWILIO_NUMBER}
     container_name: my-city-api
+  backend-django:
+    build: ../clear-city-django-api
+    command: python manage.py runserver 0.0.0.0:$DJANGO_PORT
+    volumes:
+      - ../clear-city-django-api/:/usr/src/app/
+    ports:
+      - ${DJANGO_PORT}:${DJANGO_PORT}
+    environment:
+      DJANGO_PORT: ${DJANGO_PORT}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+    container_name: backend-django-api
   proxy:
     build: proxy
     ports:
