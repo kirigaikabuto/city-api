@@ -9,14 +9,7 @@ import (
 )
 
 var queries = []string{
-	`create table if not exists file_storage (
-		id text,
-		object_type text,
-		object_id text,
-		file_url text,
-		created_date date,
-		primary key(id)
-	);`,
+	``,
 }
 
 type store struct {
@@ -42,9 +35,9 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 func (s *store) Create(model *FileStorage) (*FileStorage, error) {
 	model.Id = uuid.New().String()
 	result, err := s.db.Exec(
-		"INSERT INTO file_storage "+
-			"(id, object_type, object_id, file_url, created_date) "+
-			"VALUES ($1, $2, $3, $4, current_date)",
+		"INSERT INTO applications_filestorage "+
+			"(id, object_type, object_id, file_url, created_date,created_at, modified_at) "+
+			"VALUES ($1, $2, $3, $4, current_date, current_date, current_date)",
 		model.Id, model.ObjectType, model.ObjectId, model.FileUrl)
 	if err != nil {
 		return nil, err
@@ -64,7 +57,7 @@ func (s *store) ListByObjectType(objType string) ([]FileStorage, error) {
 	var values []interface{}
 	q := "select " +
 		"id, object_type, object_id, file_url, created_date " +
-		"from file_storage where object_type = $1"
+		"from applications_filestorage where object_type = $1"
 	values = append(values, objType)
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
@@ -92,7 +85,7 @@ func (s *store) ListByObjectId(objId string) ([]FileStorage, error) {
 	var values []interface{}
 	q := "select " +
 		"id, object_type, object_id, file_url, created_date " +
-		"from file_storage where object_id = $1"
+		"from applications_filestorage where object_id = $1"
 	values = append(values, objId)
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
@@ -120,7 +113,7 @@ func (s *store) List() ([]FileStorage, error) {
 	var values []interface{}
 	q := "select " +
 		"id, object_type, object_id, file_url, created_date " +
-		"from file_storage"
+		"from applications_filestorage"
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
 		return nil, err

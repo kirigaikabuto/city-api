@@ -24,8 +24,6 @@ services:
     build: .
     image: kirigaikabuto/my-city-api
     depends_on:
-      - redis
-      - database
       - backend-django
     ports:
       - ${PORT}:${PORT}

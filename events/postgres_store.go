@@ -11,20 +11,7 @@ import (
 )
 
 var queries = []string{
-	`create table if not exists events (
-		id text,
-		address text,
-		description text,
-		date date,
-		time text,
-		organizer_info text,
-		document_url text,
-		longitude double precision,
-		latitude double precision,
-		created_date date,
-		user_id text,
-		primary key(id)
-	);`,
+	``,
 }
 
 type store struct {
@@ -51,9 +38,9 @@ func NewPostgresStore(cfg common.PostgresConfig, fileStorageStore file_storage.S
 func (s *store) Create(model *Event) (*Event, error) {
 	model.Id = uuid.New().String()
 	result, err := s.db.Exec(
-		"INSERT INTO events "+
-			"(id, address, description, date, time, organizer_info, document_url, longitude, latitude, user_id, created_date) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, current_date)",
+		"INSERT INTO applications_event "+
+			"(id, address, description, date, time, organizer_info, document_url, longitude, latitude, user_id, created_date, created_at, modified_at) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, current_date,current_date,current_date)",
 		model.Id, model.Address, model.Description, model.Date, model.Time, model.OrganizerInfo, model.DocumentUrl, model.Longitude,
 		model.Latitude, model.UserId,
 	)
@@ -82,7 +69,7 @@ func (s *store) List() ([]Event, error) {
 	var values []interface{}
 	q := "select " +
 		"id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date, user_id " +
-		"from events"
+		"from applications_event"
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -120,7 +107,7 @@ func (s *store) ListByUserId(userId string) ([]Event, error) {
 	var values []interface{}
 	q := "select " +
 		"id, address, description, date, time, organizer_info, document_url, longitude, latitude, created_date, user_id " +
-		"from events where user_id = $1"
+		"from applications_event where user_id = $1"
 	values = append(values, userId)
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
@@ -157,7 +144,7 @@ func (s *store) ListByUserId(userId string) ([]Event, error) {
 func (s *store) GetById(id string) (*Event, error) {
 	obj := &Event{}
 	err := s.db.QueryRow("select id, address, description, "+
-		"date, time, organizer_info, document_url, longitude, latitude, created_date, user_id from events where id = $1", id).
+		"date, time, organizer_info, document_url, longitude, latitude, created_date, user_id from applications_event where id = $1", id).
 		Scan(&obj.Id, &obj.Address,
 			&obj.Description, &obj.Date,
 			&obj.Time, &obj.OrganizerInfo,
@@ -179,7 +166,7 @@ func (s *store) GetById(id string) (*Event, error) {
 }
 
 func (s *store) Update(model *EventUpdate) (*Event, error) {
-	q := "update events set "
+	q := "update applications_event set "
 	parts := []string{}
 	values := []interface{}{}
 	cnt := 0

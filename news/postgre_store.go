@@ -11,16 +11,7 @@ import (
 )
 
 var marketplaceAppRepoQueries = []string{
-	`CREATE TABLE IF NOT EXISTS news(
-		id TEXT,
-		title TEXT,
-		small_description TEXT,
-		description TEXT,
-		photo_url TEXT,
-		author_id TEXT,
-		created_date TEXT,
-		PRIMARY KEY(id)
-	);`,
+	``,
 }
 
 type newsStore struct {
@@ -46,9 +37,9 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 func (u *newsStore) Create(obj *News) (*News, error) {
 	obj.Id = uuid.New().String()
 	result, err := u.db.Exec(
-		"INSERT INTO news "+
-			"(id, title, small_description, description, photo_url, author_id, created_date) "+
-			"VALUES ($1, $2, $3, $4, $5 , $6, current_date)",
+		"INSERT INTO applications_news "+
+			"(id, title, small_description, description, photo_url, author_id, created_date, created_at, modified_at) "+
+			"VALUES ($1, $2, $3, $4, $5 , $6, current_date, current_date, current_date)",
 		obj.Id, obj.Title, obj.SmallDescription, obj.Description, obj.PhotoUrl, obj.AuthorId,
 	)
 	if err != nil {
@@ -65,7 +56,7 @@ func (u *newsStore) Create(obj *News) (*News, error) {
 }
 
 func (u *newsStore) Update(obj *UpdateNews) (*News, error) {
-	q := "update news set "
+	q := "update applications_news set "
 	parts := []string{}
 	values := []interface{}{}
 	cnt := 0
@@ -114,7 +105,7 @@ func (u *newsStore) List() ([]News, error) {
 	var values []interface{}
 	q := "select " +
 		"id, title, small_description, description, photo_url, author_id, created_date " +
-		"from news"
+		"from applications_news"
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -137,7 +128,7 @@ func (u *newsStore) List() ([]News, error) {
 func (u *newsStore) GetById(id string) (*News, error) {
 	obj := &News{}
 	err := u.db.QueryRow("select id, title, small_description,"+
-		" description, photo_url, author_id, created_date from news where id = $1", id).
+		" description, photo_url, author_id, created_date from applications_news where id = $1", id).
 		Scan(&obj.Id, &obj.Title,
 			&obj.SmallDescription, &obj.Description,
 			&obj.PhotoUrl, &obj.AuthorId, &obj.CreatedDate)
@@ -154,7 +145,7 @@ func (u *newsStore) GetByAuthorId(authorId string) ([]News, error) {
 	var values []interface{}
 	q := "select " +
 		"id, title, small_description, description, photo_url, author_id, created_date " +
-		"from news where author_id=$1"
+		"from applications_news where author_id=$1"
 	values = append(values, authorId)
 	rows, err := u.db.Query(q, values...)
 	if err != nil {

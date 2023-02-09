@@ -12,24 +12,7 @@ import (
 )
 
 var applicationQueries = []string{
-	`create table if not exists applications_application(
-		id text,
-		address text,
-		app_type text,
-		message text,
-		first_name text,
-		last_name text,
-		patronymic text,
-		phone_number text,
-		photo_url text,
-		video_url text,
-		created_date date,
-		longitude double precision,
-		latitude double precision,
-		app_status text,
-		user_id text,
-		primary key(id)
-	);`,
+	``,
 }
 
 type applicationStore struct {
