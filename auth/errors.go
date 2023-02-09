@@ -19,4 +19,7 @@ var (
 	ErrNoPasswordInRequest          = com.NewMiddleError(errors.New("no password in request"), 400, 210)
 	ErrAdminTypeDelete              = com.NewMiddleError(errors.New("access type admin can not be deleted"), 400, 211)
 	ErrNotValidPhoneNumber          = com.NewMiddleError(errors.New("not valid phone number"), 500, 212)
+	ErrUserWithUsernameAlreadyExist = com.NewMiddleError(errors.New("user with that username already exist"), 400, 213)
+	ErrUserWithEmailAlreadyExist    = com.NewMiddleError(errors.New("user with that email already exist"), 400, 214)
+	ErrPleaseFillEmail              = com.NewMiddleError(errors.New("please fill email"), 400, 215)
 )

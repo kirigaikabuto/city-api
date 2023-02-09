@@ -69,10 +69,12 @@ func (cmd *ResetPasswordRequestCommand) Exec(svc interface{}) (interface{}, erro
 	return nil, svc.(Service).ResetPasswordRequest(cmd)
 }
 
-type SendSmsData struct {
-	PhoneNumber string
-	Title       string
+type SendEmailData struct {
+	ToEmail     string
+	ToName      string
 	Body        string
+	Subject     string
+	AccessToken string
 }
 
 type ResetPasswordCommand struct {

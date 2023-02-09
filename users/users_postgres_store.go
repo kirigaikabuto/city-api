@@ -249,3 +249,16 @@ func (u *usersStore) GetByPhoneNumber(phoneNumber string) (*User, error) {
 	}
 	return user, nil
 }
+
+func (u *usersStore) GetByEmail(email string) (*User, error) {
+	user := &User{}
+	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
+		"from users where email = $1 limit 1", email).
+		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
+	if err == sql.ErrNoRows {
+		return nil, ErrUserNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	return user, nil
+}

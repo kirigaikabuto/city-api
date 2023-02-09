@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"fmt"
 	"github.com/go-redis/redis"
 	"github.com/kirigaikabuto/city-api/common"
 	"github.com/kirigaikabuto/city-api/mdw"
@@ -26,20 +25,18 @@ type Service interface {
 }
 
 type service struct {
-	userStore        users.UsersStore
-	tokenStore       mdw.TokenStore
-	s3               common.S3Uploader
-	smsPostgresStore sms_store.Store
-	smsTwilioStore   sms_store.Store
+	userStore  users.UsersStore
+	tokenStore mdw.TokenStore
+	s3         common.S3Uploader
+	emailStore *sms_store.EmailStore
 }
 
-func NewService(u users.UsersStore, t mdw.TokenStore, s3 common.S3Uploader, smsPostgresStore sms_store.Store, smsTwilioStore sms_store.Store) Service {
+func NewService(u users.UsersStore, t mdw.TokenStore, s3 common.S3Uploader, emailStore *sms_store.EmailStore) Service {
 	return &service{
-		userStore:        u,
-		tokenStore:       t,
-		s3:               s3,
-		smsPostgresStore: smsPostgresStore,
-		smsTwilioStore:   smsTwilioStore,
+		userStore:  u,
+		tokenStore: t,
+		s3:         s3,
+		emailStore: emailStore,
 	}
 }
 
@@ -68,17 +65,23 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	if cmd.Username == "" || cmd.Password == "" {
 		return nil, ErrPleaseFillUsernamePassword
 	}
+	if cmd.Email == "" {
+		return nil, ErrPleaseFillEmail
+	}
+	_, err := s.userStore.GetByUsername(cmd.Username)
+	if err == nil {
+		return nil, ErrUserWithUsernameAlreadyExist
+	}
+	//_, err = s.userStore.GetByEmail(cmd.Email)
+	//if err == nil {
+	//	return nil, ErrUserWithEmailAlreadyExist
+	//}
 	cmd.AccessType = users.AccessTypeUser
 	rand.Seed(time.Now().UnixNano())
 	code, err := GenerateOTP(6)
 	if err != nil {
 		return nil, err
 	}
-	err = s.SendSmsCode(&SendSmsData{
-		PhoneNumber: cmd.PhoneNumber,
-		Title:       "Register template",
-		Body:        code,
-	})
 	user, err := s.userStore.Create(&cmd.User)
 	if err != nil {
 		return nil, err
@@ -86,14 +89,20 @@ func (s *service) Register(cmd *RegisterCommand) (*users.User, error) {
 	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
 		Code:   code,
 		UserId: user.Id,
-		Time:   5 * time.Minute,
+		Time:   10 * time.Minute,
 	})
-	code = "111111"
-	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
-		Code:   code,
-		UserId: user.Id,
-		Time:   5 * time.Minute,
+	if err != nil {
+		return nil, err
+	}
+	err = s.SendEmail(&SendEmailData{
+		ToEmail: user.Email,
+		ToName:  "Дорогой пользователь",
+		Body:    "Ваш код верификации:" + code,
+		Subject: "Код верификации",
 	})
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }
 
@@ -184,23 +193,18 @@ func (s *service) VerifyCode(cmd *VerifyCodeCommand) error {
 }
 
 func (s *service) ResetPasswordRequest(cmd *ResetPasswordRequestCommand) error {
-	isPhone := false
 	var user *users.User
 	var err error
 	if cmd.Email != "" {
-		user = nil
-	} else if cmd.PhoneNumber != "" {
-		user, err = s.userStore.GetByPhoneNumber(cmd.PhoneNumber)
+		user, err = s.userStore.GetByEmail(cmd.Email)
 		if err != nil {
 			return err
 		}
-		isPhone = true
 	}
 	code, err := GenerateOTP(6)
 	if err != nil {
 		return err
 	}
-	code = "111111"
 	err = s.tokenStore.SaveCode(&mdw.SaveCodeCommand{
 		Code:   code,
 		UserId: user.Id,
@@ -209,13 +213,12 @@ func (s *service) ResetPasswordRequest(cmd *ResetPasswordRequestCommand) error {
 	if err != nil {
 		return err
 	}
-	if isPhone {
-		err = s.SendSmsCode(&SendSmsData{
-			PhoneNumber: cmd.PhoneNumber,
-			Title:       "reset password",
-			Body:        code,
-		})
-	}
+	err = s.SendEmail(&SendEmailData{
+		ToEmail: user.Email,
+		ToName:  user.FirstName + " " + user.LastName,
+		Body:    "Ваш код для сброса пароля:" + code,
+		Subject: "Сброс пароля",
+	})
 	return nil
 }
 
@@ -233,20 +236,30 @@ func GenerateOTP(length int) (string, error) {
 	return string(buffer), nil
 }
 
-func (s *service) SendSmsCode(data *SendSmsData) error {
-	fmt.Println(data.Body)
-	_, err := s.smsPostgresStore.Create(&sms_store.SmsCode{
-		Title: data.Title,
-		To:    data.PhoneNumber,
-		Body:  data.Body,
-	})
-	if err != nil {
+func (s *service) SendEmail(data *SendEmailData) error {
+	key := s.emailStore.ClientId + "_" + s.emailStore.ClientSecret
+	token := ""
+	token, err := s.tokenStore.GetApiToken(&mdw.GetApiTokenCommand{Key: key})
+	if err == redis.Nil {
+		tokenObj, err := s.emailStore.GetToken()
+		if err != nil {
+			return err
+		}
+		err = s.tokenStore.SaveApiToken(&mdw.SaveApiTokenCommand{
+			Value: tokenObj.AccessToken,
+			Key:   key,
+			Time:  time.Duration(tokenObj.ExpiresIn) * time.Second,
+		})
+		token = tokenObj.AccessToken
+	} else if err != nil {
 		return err
 	}
-	_, err = s.smsTwilioStore.Create(&sms_store.SmsCode{
-		Title: data.Title,
-		To:    data.PhoneNumber,
-		Body:  data.Body,
+	err = s.emailStore.SendEmail(&sms_store.SendEmailReq{
+		ToEmail:     data.ToEmail,
+		ToName:      data.ToName,
+		Body:        data.Body,
+		Subject:     data.Subject,
+		AccessToken: token,
 	})
 	if err != nil {
 		return err

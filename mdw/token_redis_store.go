@@ -109,3 +109,19 @@ func (t *tokenStore) GetUserIdByCode(code string) (string, error) {
 	}
 	return userId, nil
 }
+
+func (t *tokenStore) SaveApiToken(cmd *SaveApiTokenCommand) error {
+	err := t.redisClient.Set(cmd.Key, cmd.Value, cmd.Time).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *tokenStore) GetApiToken(cmd *GetApiTokenCommand) (string, error) {
+	token, err := t.redisClient.Get(cmd.Key).Result()
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}

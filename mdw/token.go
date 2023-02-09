@@ -32,3 +32,13 @@ type SaveCodeCommand struct {
 	UserId string
 	Time   time.Duration
 }
+
+type SaveApiTokenCommand struct {
+	Value string
+	Key   string
+	Time  time.Duration
+}
+
+type GetApiTokenCommand struct {
+	Key string
+}

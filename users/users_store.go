@@ -9,4 +9,5 @@ type UsersStore interface {
 	GetByUsernameAndPassword(username, password string) (*User, error)
 	GetByUsername(username string) (*User, error)
 	GetByPhoneNumber(phoneNumber string) (*User, error)
+	GetByEmail(email string) (*User, error)
 }

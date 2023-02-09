@@ -45,9 +45,10 @@ var (
 	postgresPort            = 5432
 	postgresParams          = ""
 	port                    = ""
-	twilioSID               = ""
-	twilioToken             = ""
-	twilioNumber            = ""
+	pulseEmailFrom          = ""
+	pulseClientId           = ""
+	pulseClientSecret       = ""
+	pulseBasicUrl           = ""
 )
 
 func parseEnvFile() {
@@ -67,9 +68,10 @@ func parseEnvFile() {
 	s3region = os.Getenv("S3_REGION")
 	redisHost = os.Getenv("REDIS_HOST")
 	redisPort = os.Getenv("REDIS_PORT")
-	twilioSID = os.Getenv("TWILIO_SID")
-	twilioToken = os.Getenv("TWILIO_TOKEN")
-	twilioNumber = os.Getenv("TWILIO_NUMBER")
+	pulseBasicUrl = os.Getenv("PULSE_BASIC_URL")
+	pulseClientId = os.Getenv("PULSE_CLIENT_ID")
+	pulseClientSecret = os.Getenv("PULSE_CLIENT_SECRET")
+	pulseEmailFrom = os.Getenv("EMAIL_FROM")
 }
 
 func run(c *cli.Context) error {
@@ -135,15 +137,12 @@ func run(c *cli.Context) error {
 	}
 	eventService := events.NewService(eventsPostgreStore, s3Uploader, fileStoragePostgresStore, usersPostgreStore)
 	eventsHttpEndpoints := events.NewHttpEndpoints(setdata_common.NewCommandHandler(eventService))
-	//sms
-	smsPostgreStore, err := sms_store.NewPostgresStore(cfg)
-	if err != nil {
-		return err
-	}
-	smsTwilioStore := sms_store.NewTwilioStore(common.TwilioConfig{
-		AccountSID:  twilioSID,
-		AuthToken:   twilioToken,
-		PhoneNumber: twilioNumber,
+	//email
+	emailStore := sms_store.NewPulseEmailStore(common.PulseEmailConfig{
+		EmailFrom:    pulseEmailFrom,
+		ClientId:     pulseClientId,
+		ClientSecret: pulseClientSecret,
+		BasicUrl:     pulseBasicUrl,
 	})
 
 	r := gin.Default()
@@ -170,7 +169,7 @@ func run(c *cli.Context) error {
 		},
 		MaxAge: 72 * time.Hour,
 	}))
-	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader, smsPostgreStore, smsTwilioStore)
+	authService := auth.NewService(usersPostgreStore, tknStore, s3Uploader, emailStore)
 	authHttpEndpoints := auth.NewHttpEndpoints(setdata_common.NewCommandHandler(authService))
 
 	//feedback
