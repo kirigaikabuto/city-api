@@ -12,7 +12,7 @@ import (
 )
 
 var applicationQueries = []string{
-	`create table if not exists Applications(
+	`create table if not exists applications_application(
 		id text,
 		address text,
 		app_type text,
@@ -26,7 +26,7 @@ var applicationQueries = []string{
 		created_date date,
 		longitude double precision,
 		latitude double precision,
-		status text,
+		app_status text,
 		user_id text,
 		primary key(id)
 	);`,
@@ -57,9 +57,9 @@ func (a *applicationStore) Create(model *Application) (*Application, error) {
 	model.AppStatus = StatusWait
 	model.Id = uuid.New().String()
 	result, err := a.db.Exec(
-		"INSERT INTO Applications "+
-			"(id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id) "+
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, current_date, $11, $12, $13, $14)",
+		"INSERT INTO applications_application "+
+			"(id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, app_status, user_id, created_at, modified_at) "+
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, current_date, $11, $12, $13, $14, current_date, current_date)",
 		model.Id, model.Address, model.AppType.ToString(), model.Message, model.FirstName, model.LastName, model.Patronymic,
 		model.PhoneNumber, model.PhotoUrl, model.VideoUrl, model.Longitude, model.Latitude, model.AppStatus.ToString(), model.UserId,
 	)
@@ -87,8 +87,8 @@ func (a *applicationStore) List() ([]Application, error) {
 	var objects []Application
 	var values []interface{}
 	q := "select " +
-		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id " +
-		"from Applications"
+		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, app_status, user_id " +
+		"from applications_application"
 	rows, err := a.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (a *applicationStore) GetById(id string) (*Application, error) {
 	obj := &Application{}
 	appType := ""
 	appStatus := ""
-	err := a.db.QueryRow("select id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id from Applications where id = $1", id).
+	err := a.db.QueryRow("select id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, app_status, user_id from applications_application where id = $1", id).
 		Scan(&obj.Id, &obj.Address,
 			&appType, &obj.Message, &obj.FirstName,
 			&obj.LastName, &obj.Patronymic,
@@ -160,8 +160,8 @@ func (a *applicationStore) GetByProblemType(problemType ProblemType) ([]Applicat
 	var values []interface{}
 	values = append(values, problemType.ToString())
 	q := "select " +
-		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id " +
-		"from Applications where app_type = $1"
+		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, app_status, user_id " +
+		"from applications_application where app_type = $1"
 	rows, err := a.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -199,7 +199,7 @@ func (a *applicationStore) GetByProblemType(problemType ProblemType) ([]Applicat
 }
 
 func (a *applicationStore) Update(model *ApplicationUpdate) (*Application, error) {
-	q := "update applications set "
+	q := "update applications_application set "
 	parts := []string{}
 	values := []interface{}{}
 	cnt := 0
@@ -255,7 +255,7 @@ func (a *applicationStore) Update(model *ApplicationUpdate) (*Application, error
 	}
 	if model.AppStatus != nil {
 		cnt++
-		parts = append(parts, "status = $"+strconv.Itoa(cnt))
+		parts = append(parts, "app_status = $"+strconv.Itoa(cnt))
 		values = append(values, model.AppStatus.ToString())
 	}
 	if len(parts) <= 0 {
@@ -283,8 +283,8 @@ func (a *applicationStore) ListApplicationsByUserId(userId string) ([]Applicatio
 	var values []interface{}
 	values = append(values, userId)
 	q := "select " +
-		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id " +
-		"from Applications where user_id = $1"
+		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, app_status, user_id " +
+		"from applications_application where user_id = $1"
 	rows, err := a.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -322,7 +322,7 @@ func (a *applicationStore) ListApplicationsByUserId(userId string) ([]Applicatio
 }
 
 func (a *applicationStore) RemoveApplication(id string) error {
-	_, err := a.db.Exec("DELETE FROM Applications WHERE id = $1", id)
+	_, err := a.db.Exec("DELETE FROM applications_application WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
@@ -333,8 +333,8 @@ func (a *applicationStore) ListByAddress(address string) ([]Application, error) 
 	var objects []Application
 	var values []interface{}
 	q := "select " +
-		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, status, user_id " +
-		"from Applications where address like '%" + address + "%'"
+		"id, address, app_type, message, first_name, last_name, patronymic, phone_number, photo_url, video_url, created_date, longitude, latitude, app_status, user_id " +
+		"from applications_application where address like '%" + address + "%'"
 	rows, err := a.db.Query(q, values...)
 	if err != nil {
 		return nil, err
