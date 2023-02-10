@@ -9,15 +9,7 @@ import (
 )
 
 var marketplaceAppRepoQueries = []string{
-	`CREATE TABLE IF NOT EXISTS comments(
-		id TEXT,
-		message TEXT,
-		user_id TEXT,
-		obj_id TEXT,
-		obj_type TEXT,
-		created_date TEXT,
-		PRIMARY KEY(id)
-	);`,
+	``,
 }
 
 type usersStore struct {
@@ -43,9 +35,9 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 func (u *usersStore) Create(obj *Comment) (*Comment, error) {
 	obj.Id = uuid.New().String()
 	result, err := u.db.Exec(
-		"INSERT INTO comments "+
-			"(id, message, user_id, obj_id, obj_type, created_date) "+
-			"VALUES ($1, $2, $3, $4, $5, current_date)",
+		"INSERT INTO applications_comments "+
+			"(id, message, user_id, obj_id, obj_type, created_date,created_at, modified_at) "+
+			"VALUES ($1, $2, $3, $4, $5, current_date, current_date, current_date)",
 		obj.Id, obj.Message, obj.UserId, obj.ObjId, obj.ObjType.ToString(),
 	)
 	if err != nil {
@@ -66,7 +58,7 @@ func (u *usersStore) List() ([]Comment, error) {
 	var values []interface{}
 	q := "select " +
 		"id, message, user_id, obj_id, obj_type, created_date " +
-		"from comments"
+		"from applications_comments"
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -86,7 +78,7 @@ func (u *usersStore) List() ([]Comment, error) {
 
 func (u *usersStore) GetById(id string) (*Comment, error) {
 	obj := &Comment{}
-	err := u.db.QueryRow("select id, message, user_id, obj_id, obj_type, created_date from comments where id = $1", id).
+	err := u.db.QueryRow("select id, message, user_id, obj_id, obj_type, created_date from applications_comments where id = $1", id).
 		Scan(&obj.Id, &obj.Message, &obj.UserId, &obj.ObjId, &obj.ObjType, &obj.CreatedDate)
 	if err == sql.ErrNoRows {
 		return nil, ErrCommentNotFound
@@ -101,7 +93,7 @@ func (u *usersStore) GetByObjType(objType ObjType) ([]Comment, error) {
 	var values []interface{}
 	q := "select " +
 		"id, message, user_id, obj_id, obj_type, created_date " +
-		"from comments where obj_type = $1"
+		"from applications_comments where obj_type = $1"
 	values = append(values, objType)
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
@@ -125,7 +117,7 @@ func (u *usersStore) GetByObjId(objId string) ([]Comment, error) {
 	var values []interface{}
 	q := "select " +
 		"id, message, user_id, obj_id, obj_type, created_date " +
-		"from comments where obj_id = $1"
+		"from applications_comments where obj_id = $1"
 	values = append(values, objId)
 	rows, err := u.db.Query(q, values...)
 	if err != nil {

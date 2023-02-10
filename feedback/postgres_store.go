@@ -9,14 +9,7 @@ import (
 )
 
 var marketplaceAppRepoQueries = []string{
-	`CREATE TABLE IF NOT EXISTS feedback(
-		id TEXT,
-		message TEXT,
-		full_name TEXT,
-		phone_number TEXT,
-		created_date TEXT,
-		PRIMARY KEY(id)
-	);`,
+	``,
 }
 
 type usersStore struct {
@@ -42,9 +35,9 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 func (u *usersStore) Create(obj *Feedback) (*Feedback, error) {
 	obj.Id = uuid.New().String()
 	result, err := u.db.Exec(
-		"INSERT INTO feedback "+
-			"(id, message, full_name, phone_number, created_date) "+
-			"VALUES ($1, $2, $3, $4, current_date)",
+		"INSERT INTO applications_feedback "+
+			"(id, message, full_name, phone_number, created_date, created_at, modified_at) "+
+			"VALUES ($1, $2, $3, $4, current_date, current_date, current_date)",
 		obj.Id, obj.Message, obj.FullName, obj.PhoneNumber,
 	)
 	if err != nil {
@@ -65,7 +58,7 @@ func (u *usersStore) List() ([]Feedback, error) {
 	var values []interface{}
 	q := "select " +
 		"id, message, full_name, phone_number, created_date " +
-		"from feedback"
+		"from applications_feedback"
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -86,7 +79,7 @@ func (u *usersStore) List() ([]Feedback, error) {
 
 func (u *usersStore) GetById(id string) (*Feedback, error) {
 	obj := &Feedback{}
-	err := u.db.QueryRow("select id, message, full_name, phone_number, created_date from feedback where id = $1", id).
+	err := u.db.QueryRow("select id, message, full_name, phone_number, created_date from applications_feedback where id = $1", id).
 		Scan(&obj.Id, &obj.Message,
 			&obj.FullName, &obj.PhoneNumber, &obj.CreatedDate)
 	if err == sql.ErrNoRows {

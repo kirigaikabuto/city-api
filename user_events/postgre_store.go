@@ -9,13 +9,7 @@ import (
 )
 
 var marketplaceAppRepoQueries = []string{
-	`CREATE TABLE IF NOT EXISTS user_events(
-		id TEXT,
-		user_id TEXT,
-		event_id TEXT,
-		created_date TEXT,
-		PRIMARY KEY(id)
-	);`,
+	``,
 }
 
 type store struct {
@@ -41,9 +35,9 @@ func NewPostgresStore(cfg common.PostgresConfig) (Store, error) {
 func (s *store) Create(obj *UserEvent) (*UserEvent, error) {
 	obj.Id = uuid.New().String()
 	result, err := s.db.Exec(
-		"INSERT INTO user_events "+
-			"(id, user_id, event_id, created_date) "+
-			"VALUES ($1, $2, $3, current_date)",
+		"INSERT INTO applications_userevents "+
+			"(id, user_id, event_id, created_date, created_at, modified_at) "+
+			"VALUES ($1, $2, $3, current_date, current_date, current_date)",
 		obj.Id, obj.UserId, obj.EventId,
 	)
 	if err != nil {
@@ -64,7 +58,7 @@ func (s *store) ListByEventId(id string) ([]UserEvent, error) {
 	var values []interface{}
 	q := "select " +
 		"id, user_id, event_id, created_date " +
-		"from user_events where event_id=$1"
+		"from applications_userevents where event_id=$1"
 	values = append(values, id)
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
@@ -89,7 +83,7 @@ func (s *store) ListByUserId(id string) ([]UserEvent, error) {
 	var values []interface{}
 	q := "select " +
 		"id, user_id, event_id, created_date " +
-		"from user_events where user_id=$1"
+		"from applications_userevents where user_id=$1"
 	values = append(values, id)
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
@@ -114,7 +108,7 @@ func (s *store) List() ([]UserEvent, error) {
 	var values []interface{}
 	q := "select " +
 		"id, user_id, event_id, created_date " +
-		"from user_events"
+		"from applications_userevents"
 	rows, err := s.db.Query(q, values...)
 	if err != nil {
 		return nil, err
@@ -135,7 +129,7 @@ func (s *store) List() ([]UserEvent, error) {
 
 func (s *store) GetUserEventById(id string) (*UserEvent, error) {
 	obj := &UserEvent{}
-	err := s.db.QueryRow("select id, user_id, event_id, created_date from user_events where id = $1", id).
+	err := s.db.QueryRow("select id, user_id, event_id, created_date from applications_userevents where id = $1", id).
 		Scan(&obj.Id, &obj.UserId,
 			&obj.EventId, &obj.CreatedDate)
 	if err == sql.ErrNoRows {

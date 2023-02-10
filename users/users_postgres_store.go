@@ -12,20 +12,7 @@ import (
 )
 
 var marketplaceAppRepoQueries = []string{
-	`CREATE TABLE IF NOT EXISTS users(
-		id TEXT,
-		first_name TEXT,
-		last_name TEXT,
-		username TEXT,
-		password TEXT,
-		email TEXT,
-		phone_number TEXT,
-		gender TEXT,
-		access_type TEXT,
-		avatar TEXT,
-		is_verified bool,
-		PRIMARY KEY(id)
-	);`,
+	``,
 }
 
 type usersStore struct {
@@ -49,7 +36,7 @@ func NewPostgresUsersStore(cfg common.PostgresConfig) (UsersStore, error) {
 }
 
 func (u *usersStore) Update(user *UserUpdate) (*User, error) {
-	q := "update users set "
+	q := "update applications_mainuser set "
 	parts := []string{}
 	values := []interface{}{}
 	cnt := 0
@@ -139,8 +126,8 @@ func (u *usersStore) Create(user *User) (*User, error) {
 		return nil, err
 	}
 	user.Password = hashPassword
-	result, err := u.db.Exec("INSERT INTO users (id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified) "+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+	result, err := u.db.Exec("INSERT INTO applications_mainuser (id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified, created_at, modified_at) "+
+		"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, current_date, current_date)",
 		user.Id, user.FirstName, user.LastName, user.Email,
 		user.PhoneNumber, user.Gender.ToString(), user.Avatar, user.Username,
 		user.Password, user.AccessType.ToString(), user.IsVerified,
@@ -161,7 +148,7 @@ func (u *usersStore) Create(user *User) (*User, error) {
 func (u *usersStore) Get(id string) (*User, error) {
 	user := &User{}
 	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
-		"from users where id = $1 limit 1", id).
+		"from applications_mainuser where id = $1 limit 1", id).
 		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
@@ -174,7 +161,7 @@ func (u *usersStore) Get(id string) (*User, error) {
 func (u *usersStore) GetByUsername(username string) (*User, error) {
 	user := &User{}
 	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
-		"from users where username = $1 limit 1", username).
+		"from applications_mainuser where username = $1 limit 1", username).
 		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
@@ -187,7 +174,7 @@ func (u *usersStore) GetByUsername(username string) (*User, error) {
 func (u *usersStore) List() ([]User, error) {
 	users := []User{}
 	var values []interface{}
-	q := "select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified from users"
+	q := "select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified from applications_mainuser"
 	//cnt := 1
 	rows, err := u.db.Query(q, values...)
 	if err != nil {
@@ -208,7 +195,7 @@ func (u *usersStore) List() ([]User, error) {
 func (u *usersStore) GetByUsernameAndPassword(username, password string) (*User, error) {
 	user := &User{}
 	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
-		"from users where username = $1 limit 1", &username).
+		"from applications_mainuser where username = $1 limit 1", &username).
 		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
@@ -223,7 +210,7 @@ func (u *usersStore) GetByUsernameAndPassword(username, password string) (*User,
 }
 
 func (u *usersStore) Delete(id string) error {
-	result, err := u.db.Exec("delete from users where id= $1", id)
+	result, err := u.db.Exec("delete from applications_mainuser where id= $1", id)
 	if err != nil {
 		return err
 	}
@@ -240,7 +227,7 @@ func (u *usersStore) Delete(id string) error {
 func (u *usersStore) GetByPhoneNumber(phoneNumber string) (*User, error) {
 	user := &User{}
 	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
-		"from users where phone_number = $1 limit 1", phoneNumber).
+		"from applications_mainuser where phone_number = $1 limit 1", phoneNumber).
 		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
@@ -253,7 +240,7 @@ func (u *usersStore) GetByPhoneNumber(phoneNumber string) (*User, error) {
 func (u *usersStore) GetByEmail(email string) (*User, error) {
 	user := &User{}
 	err := u.db.QueryRow("select id, first_name, last_name, email, phone_number, gender, avatar, username, password, access_type, is_verified "+
-		"from users where email = $1 limit 1", email).
+		"from applications_mainuser where email = $1 limit 1", email).
 		Scan(&user.Id, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Gender, &user.Avatar, &user.Username, &user.Password, &user.AccessType, &user.IsVerified)
 	if err == sql.ErrNoRows {
 		return nil, ErrUserNotFound
