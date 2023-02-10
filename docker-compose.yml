@@ -79,20 +79,20 @@ services:
       POSTGRES_PARAM: ${POSTGRES_PARAM}
       POSTGRES_USER: ${POSTGRES_USER}
     container_name: backend-django-api
-#  proxy:
-#    build: proxy
-#    ports:
-#      - "80:80"
-#    depends_on:
-#      - front
-#    environment:
-#      PORT: ${PORT}
-#  front:
-#    build: ../clear-city
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - backend
+  proxy:
+    build: proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - front
+    environment:
+      PORT: ${PORT}
+  front:
+    build: ../clear-city
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
 volumes:
   database_data:
     driver: local
