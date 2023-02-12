@@ -15,6 +15,7 @@ services:
   redis:
     image: "redis:alpine"
     command: redis-server
+    restart: always
     ports:
       - "6379:6379"
     environment:
