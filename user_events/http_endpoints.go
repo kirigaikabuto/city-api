@@ -8,7 +8,7 @@ import (
 
 type HttpEndpoints interface {
 	MakeCreateUserEvent() gin.HandlerFunc
-	MakeListByEventId() gin.HandlerFunc
+	MakeListByObjectId() gin.HandlerFunc
 	MakeListByUserId() gin.HandlerFunc
 	MakeListUserEvents() gin.HandlerFunc
 	MakeGetUserEventById() gin.HandlerFunc
@@ -45,7 +45,7 @@ func (h *httpEndpoints) MakeCreateUserEvent() gin.HandlerFunc {
 	}
 }
 
-func (h *httpEndpoints) MakeListByEventId() gin.HandlerFunc {
+func (h *httpEndpoints) MakeListByObjectId() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		cmd := &ListByEventIdCommand{}
 		cmd.EventId = context.Request.URL.Query().Get("id")

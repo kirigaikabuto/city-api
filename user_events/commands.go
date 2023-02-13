@@ -13,7 +13,7 @@ type ListByEventIdCommand struct {
 }
 
 func (cmd *ListByEventIdCommand) Exec(svc interface{}) (interface{}, error) {
-	return svc.(Service).ListByEventId(cmd)
+	return svc.(Service).ListByObjectId(cmd)
 }
 
 type ListByUserIdCommand struct {

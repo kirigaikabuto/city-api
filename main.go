@@ -201,7 +201,7 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	userEventsService := user_events.NewService(userEventsPostgreStore, usersPostgreStore, eventsPostgreStore)
+	userEventsService := user_events.NewService(userEventsPostgreStore, usersPostgreStore, eventsPostgreStore, applicationPostgreStore)
 	userEventsHttpEndpoints := user_events.NewHttpEndpoints(setdata_common.NewCommandHandler(userEventsService))
 
 	appGroup := r.Group("/application")
@@ -266,7 +266,7 @@ func run(c *cli.Context) error {
 	{
 		userEventsGroup.POST("/", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeCreateUserEvent())
 		userEventsGroup.GET("/userId", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListByUserId())
-		userEventsGroup.GET("/eventId", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListByEventId())
+		userEventsGroup.GET("/objId", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListByObjectId())
 		userEventsGroup.GET("/", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeListUserEvents())
 		userEventsGroup.GET("/id", mdwEndpoint.MakeMiddleware(), userEventsHttpEndpoints.MakeGetUserEventById())
 	}
