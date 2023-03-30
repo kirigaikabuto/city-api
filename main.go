@@ -147,7 +147,7 @@ func run(c *cli.Context) error {
 
 	r := gin.Default()
 	//r.Use(apiKewMdw.MakeCorsMiddleware())
-	allowOrigins := []string{"http://94.247.128.130",
+	allowOrigins := []string{"http://195.49.210.63",
 		"http://chistyi-gorod.kz",
 		"http://37.99.44.126",
 		"http://172.19.0.1",
